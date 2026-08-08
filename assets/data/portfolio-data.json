@@ -1,0 +1,119 @@
+{
+  "security": {
+    "passcode": "Rinesh123"
+  },
+  "hero": {
+    "headline": "sound engineer",
+    "name": "Rinesh Kumar",
+    "title": "Hello! I'm Rinesh Kumar a professional sound engineer & music composer.",
+    "skills": [
+      "Mixing & Mastering",
+      "Sound Design & Foley",
+      "Music Composing",
+      "Background Scoring",
+      "Audio Post-Production"
+    ],
+    "videoSrc": "assets/Showreel_V3.mov"
+  },
+  "about": {
+    "title": "I am dedicated to bringing your sonic vision to life by crafting unique, highly immersive, and impactful audio experiences. My work speaks louder than words\u2014explore the results.",
+    "bio": "I\u2019m a passionate sound engineer, sound designer, and music composer focused on creating immersive, pristine audio experiences. With over 5 years of professional experience, I blend artistic creativity with advanced technical expertise to produce tracks, soundscapes, and scores that resonate deeply with listeners.\n\nWith a strong ear for detail & a solid technical foundation in acoustics, mixing, and synthesis, I transform raw concepts into polished sonic realities. I believe great sound is purposeful\u2014every layer, frequency, and transition is crafted to enhance the emotional impact of the project.\n\nFrom initial concept to final master, I work closely with filmmakers, game developers, and musicians to understand their goals and sonic vision. My collaborative approach ensures each project reflects the client\u2019s identity while maintaining top-tier industry standards.",
+    "image": "assets/images/thumbs/rinesh_guitar.jpg",
+    "completedProjects": 150,
+    "satisfactionRate": "100%",
+    "globalClients": 96
+  },
+  "contact": {
+    "name": "Rinesh Kumar",
+    "title": "Sound Engineer & Composer",
+    "email": "rineshsoundscraft@gmail.com",
+    "phone": "+91 93602 37280",
+    "whatsapp": "https://wa.me/919360237280",
+    "instagram": "https://www.instagram.com/rinesh_kumar_30?igsh=bjJtcndxaHdvZnpy",
+    "linkedin": "https://www.linkedin.com/in/rinesh-kumar-92606b303/",
+    "cardImage": "assets/images/thumbs/rinesh_guitar.jpg",
+    "cvLink": "assets/Rinesh_CV.pdf"
+  },
+  "projects": [
+    {
+      "id": "p1",
+      "title": "MANGA",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/manga.webp",
+      "desc": "First look poster of our next Short Film MANGA. Written & Directed by Pradeep Spade."
+    },
+    {
+      "id": "p2",
+      "title": "The Briefcase",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/the_briefcase.webp",
+      "desc": "Official poster and first look of the thriller short film 'The Briefcase'."
+    },
+    {
+      "id": "p3",
+      "title": "Puriyadha Puthir (Ep 3)",
+      "category": "web-series",
+      "categoryName": "Web Series",
+      "img": "works/puriyadha_puthir_ep3.webp",
+      "desc": "Episode 3: 'Way to End'. The final episode of the thriller series coming soon."
+    },
+    {
+      "id": "p4",
+      "title": "Butcher",
+      "category": "youtube-release",
+      "categoryName": "YouTube Release",
+      "img": "works/butcher.jpg",
+      "desc": "Our short release 'Butcher' is now streaming live on YouTube."
+    },
+    {
+      "id": "p5",
+      "title": "Sugar Date",
+      "category": "youtube-release",
+      "categoryName": "YouTube Release",
+      "img": "works/sugar_date.jpg",
+      "desc": "Sugar Date is live and out now on YouTube. Watch it now!"
+    },
+    {
+      "id": "p6",
+      "title": "Welcome on Board",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/welcome_on_board.webp",
+      "desc": "Not just a story, but an immersive cinematic experience. Welcome on Board is now live."
+    },
+    {
+      "id": "p7",
+      "title": "Late Comers",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/late_comers.jpg",
+      "desc": "Stay tuned for the official trailer & release of our film 'Late Comers'."
+    },
+    {
+      "id": "p8",
+      "title": "காத்திருங்கள் (Stay Tuned)",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/stay_tuned.jpg",
+      "desc": "Collaboration film project with the Tamil Nadu Police (Tenkasi Division)."
+    },
+    {
+      "id": "p9",
+      "title": "It's Done",
+      "category": "short-film",
+      "categoryName": "Short Film",
+      "img": "works/its_done.webp",
+      "desc": "Post-production successfully wrapped for this Tamil short film project."
+    },
+    {
+      "id": "p10",
+      "title": "Personal Cinematic Project",
+      "category": "short-film",
+      "categoryName": "Personal Project",
+      "img": "works/most_personal.jpg",
+      "desc": "“The most personal is the most creative” — artistic showcase poster."
+    }
+  ]
+}
