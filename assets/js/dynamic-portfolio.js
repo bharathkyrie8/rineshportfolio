@@ -46,8 +46,23 @@
     });
   }
 
+  const SUPABASE_CLOUD_URL = 'https://yiqdieaknynuhncycgid.supabase.co';
+  const SUPABASE_CLOUD_KEY = 'sb_publishable_IzCiPG3dn4nhA3v0qrxUiA_N9sx7LQ2';
+
+  let directSupabase = null;
+  function getDirectSupabase() {
+    if (!directSupabase && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      try {
+        directSupabase = window.supabase.createClient(SUPABASE_CLOUD_URL, SUPABASE_CLOUD_KEY, {
+          auth: { persistSession: false }
+        });
+      } catch (_) {}
+    }
+    return directSupabase;
+  }
+
   async function loadPortfolioData() {
-    // Check cached offline data first for instant render
+    // 1. Check cached offline data first for instant render
     try {
       const cached = localStorage.getItem('rk_offline_pending');
       if (cached) {
@@ -58,17 +73,57 @@
       }
     } catch (_) {}
 
-    // Fetch live data from backend server / Supabase
+    // 2. Fetch live data from backend server / Supabase API
+    let loadedFromApi = false;
     try {
       const res = await fetch('/api/data?_t=' + Date.now());
-      if (!res.ok) return;
-
-      const result = await res.json();
-      if (result.success && result.data) {
-        applyAllData(result.data);
+      if (res.ok) {
+        const result = await res.json();
+        if (result.success && result.data) {
+          applyAllData(result.data);
+          loadedFromApi = true;
+        }
       }
     } catch (err) {
-      console.log('ℹ️ [PORTFOLIO] Backend server not reachable, using cached/static data.');
+      console.log('ℹ️ [PORTFOLIO] Backend Express API not reachable, attempting direct Supabase connection...');
+    }
+
+    // 2.5 Try Direct Supabase Cloud connection if Express API is not running
+    if (!loadedFromApi) {
+      const sb = getDirectSupabase();
+      if (sb) {
+        try {
+          const { data, error } = await sb
+            .from('portfolio_data')
+            .select('content')
+            .eq('id', 'master')
+            .single();
+
+          if (!error && data && data.content) {
+            applyAllData(data.content);
+            loadedFromApi = true;
+            console.log('⚡ [PORTFOLIO] Loaded live portfolio data directly from Supabase Cloud Database!');
+          }
+        } catch (_) {}
+      }
+    }
+
+    // 3. Fallback: Fetch static data.json file if API server & Supabase are unreachable
+    if (!loadedFromApi) {
+      const paths = ['data.json', '../data.json', './data.json', '/data.json'];
+      for (const p of paths) {
+        try {
+          const staticRes = await fetch(p + '?_t=' + Date.now());
+          if (staticRes.ok) {
+            const staticData = await staticRes.json();
+            if (staticData && typeof staticData === 'object') {
+              applyAllData(staticData);
+              console.log('✅ [PORTFOLIO] Successfully loaded portfolio from static data.json');
+              break;
+            }
+          }
+        } catch (_) {}
+      }
     }
   }
 

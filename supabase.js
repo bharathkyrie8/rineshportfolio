@@ -126,8 +126,8 @@ function saveLocalDatabase(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
     return true;
   } catch (err) {
-    console.error('❌ [ERROR] Failed writing to local data.json:', err.message);
-    throw err;
+    console.warn('⚠️ [LOCAL DB] Cannot write to data.json (Serverless/Read-only filesystem mode):', err.message);
+    return false;
   }
 }
 
@@ -179,8 +179,8 @@ async function getMasterData() {
  * Save Master Portfolio Data (to Supabase and keep local file in sync)
  */
 async function saveMasterData(data) {
-  // Always update local file as backup
-  saveLocalDatabase(data);
+  // Update local file as backup (if filesystem is writable)
+  const localSaved = saveLocalDatabase(data);
 
   let supabaseSaved = false;
   let supabaseError = null;
@@ -208,11 +208,14 @@ async function saveMasterData(data) {
     }
   }
 
+  // Success if either Supabase saved OR local file saved
+  const overallSuccess = supabaseSaved || localSaved;
+
   return {
-    success: true,
+    success: overallSuccess,
     supabaseSaved,
     supabaseError,
-    localSaved: true
+    localSaved
   };
 }
 

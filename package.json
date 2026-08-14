@@ -4,6 +4,7 @@
   "description": "Portfolio website for Rinesh Kumar",
   "main": "server.js",
   "scripts": {
+    "build": "echo 'No build step needed'",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node test_server.js"

@@ -7,32 +7,28 @@
 ehthumbs.db
 Thumbs.db
 
-# IDE / Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Dependencies
+node_modules/
 
-# Temporary / Log files
-*.log
-scratch/
+# Environment files & secrets
+.env
+.env.*
+.env.local
+
+# Agent & editor metadata
+.agents/
+.mcp.json
+.vscode/
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
-assets/Showreel_V3.mov
-assets/Showreel V3.mov
 
-# Dependencies
-node_modules/
-
-# Environment files
-.env
-.env.local
-.env*.local
-
-# Internal tools & Agent config
-.agents/
-.mcp.json
+# Large media files (exceeding GitHub 100MB limit)
+*.mov
+*.mp4
+assets/*.mov
+assets/*.mp4
+assets/Showreel*
 

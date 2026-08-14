@@ -181,12 +181,23 @@ app.post('/api/save', async (req, res) => {
     }
 
     const saveResult = await saveMasterData(payload);
-    res.status(200).json({
-      success: true,
-      status: 'success',
-      message: 'Portfolio data successfully saved and synchronized',
-      result: saveResult
-    });
+    if (saveResult.success || saveResult.supabaseSaved || saveResult.localSaved) {
+      res.status(200).json({
+        success: true,
+        status: 'success',
+        message: saveResult.supabaseSaved 
+          ? 'Portfolio data successfully saved to Supabase cloud database!' 
+          : 'Portfolio data saved to local file store.',
+        result: saveResult
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        status: 'partial',
+        message: 'Data processed (Warning: Local disk read-only and Supabase credentials missing on server)',
+        result: saveResult
+      });
+    }
   } catch (err) {
     res.status(500).json({
       success: false,

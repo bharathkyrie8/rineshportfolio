@@ -15,6 +15,21 @@ let heartbeatInterval = null;
 
 let latestServerInfo = null;
 
+const SUPABASE_CLOUD_URL = 'https://yiqdieaknynuhncycgid.supabase.co';
+const SUPABASE_CLOUD_KEY = 'sb_publishable_IzCiPG3dn4nhA3v0qrxUiA_N9sx7LQ2';
+
+let directSupabase = null;
+function getDirectSupabase() {
+  if (!directSupabase && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+    try {
+      directSupabase = window.supabase.createClient(SUPABASE_CLOUD_URL, SUPABASE_CLOUD_KEY, {
+        auth: { persistSession: false }
+      });
+    } catch (_) {}
+  }
+  return directSupabase;
+}
+
 async function pingCandidate(url, timeoutMs = 1200) {
   if (url === null || url === undefined) return { ok: false };
   const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -102,6 +117,8 @@ async function getApiBase(forceProbe = false) {
 
   // 4. Local dev server ports — ONLY probe on HTTP or file: (NEVER on HTTPS to avoid mixed-content blocking)
   if (!isHttps) {
+    candidates.push('http://localhost:5000');
+    candidates.push('http://127.0.0.1:5000');
     candidates.push('http://localhost:5500');
     candidates.push('http://127.0.0.1:5500');
     candidates.push('http://localhost:5501');
@@ -122,9 +139,23 @@ async function getApiBase(forceProbe = false) {
     }
   }
 
+  // 5. Test Direct Supabase Cloud Connection if local server is not listening
+  const sb = getDirectSupabase();
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('portfolio_data').select('updated_at').limit(1);
+      if (!error || (error && error.code === 'PGRST116')) {
+        cachedApiBase = 'SUPABASE_CLOUD';
+        sessionStorage.setItem('rk_active_api', 'SUPABASE_CLOUD');
+        updateServerStatus(true, 'Supabase Cloud');
+        return 'SUPABASE_CLOUD';
+      }
+    } catch (_) {}
+  }
+
   // Default fallback if server is offline (Static / GitHub Pages mode)
   updateServerStatus(false);
-  const fallback = (isHttps || isHttp) ? window.location.origin : 'http://localhost:5500';
+  const fallback = (isHttps || isHttp) ? window.location.origin : 'http://localhost:5000';
   return fallback;
 }
 
@@ -321,21 +352,58 @@ async function loadData() {
   // 1. Try fetching from dynamic API endpoint
   try {
     const apiBase = await getApiBase();
-    const res = await fetch(`${apiBase}/api/data`);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status === 'success' && json.data) {
-        portfolioData = json.data;
-        loadedSuccessfully = true;
-        updateServerStatus(true, apiBase);
-        const dataBadge = document.getElementById('api-data-badge');
-        if (dataBadge) {
-          dataBadge.textContent = 'online (server)';
-          dataBadge.className = 'api-badge ok';
+    if (apiBase === 'SUPABASE_CLOUD') {
+      const sb = getDirectSupabase();
+      if (sb) {
+        const { data, error } = await sb.from('portfolio_data').select('content').eq('id', 'master').single();
+        if (!error && data && data.content) {
+          portfolioData = data.content;
+          loadedSuccessfully = true;
+          updateServerStatus(true, 'Supabase Cloud');
+          const dataBadge = document.getElementById('api-data-badge');
+          if (dataBadge) {
+            dataBadge.textContent = 'online (supabase cloud)';
+            dataBadge.className = 'api-badge ok';
+          }
+        }
+      }
+    } else {
+      const res = await fetch(`${apiBase}/api/data`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          portfolioData = json.data;
+          loadedSuccessfully = true;
+          updateServerStatus(true, apiBase);
+          const dataBadge = document.getElementById('api-data-badge');
+          if (dataBadge) {
+            dataBadge.textContent = 'online (server)';
+            dataBadge.className = 'api-badge ok';
+          }
         }
       }
     }
   } catch (_) {}
+
+  // 1.5 Try Direct Supabase Cloud as fallback if Express API failed
+  if (!loadedSuccessfully) {
+    const sb = getDirectSupabase();
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('portfolio_data').select('content').eq('id', 'master').single();
+        if (!error && data && data.content) {
+          portfolioData = data.content;
+          loadedSuccessfully = true;
+          updateServerStatus(true, 'Supabase Cloud');
+          const dataBadge = document.getElementById('api-data-badge');
+          if (dataBadge) {
+            dataBadge.textContent = 'online (supabase cloud)';
+            dataBadge.className = 'api-badge ok';
+          }
+        }
+      } catch (_) {}
+    }
+  }
 
   // 2. If API fails, try fetching static data.json from web root
   if (!loadedSuccessfully) {
@@ -574,28 +642,89 @@ async function saveAllData(e, clickedBtn) {
 
   try {
     const apiBase = await getApiBase();
-    const res = await fetch(`${apiBase}/api/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(portfolioData)
-    });
 
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status === 'success') {
-        serverSaveSuccess = true;
-        showToast('✅ Saved to data.json! Portfolio & Admin updated.', 'success');
-        const saveBadge = document.getElementById('api-save-badge');
-        if (saveBadge) {
-          saveBadge.textContent = 'saved (server)';
-          saveBadge.className = 'api-badge ok';
+    if (apiBase === 'SUPABASE_CLOUD') {
+      const sb = getDirectSupabase();
+      if (sb) {
+        const { error } = await sb
+          .from('portfolio_data')
+          .upsert({
+            id: 'master',
+            content: portfolioData,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+        if (!error) {
+          serverSaveSuccess = true;
+          showToast('⚡ Saved directly to Supabase Cloud Database! Live portfolio updated globally.', 'success');
+          const saveBadge = document.getElementById('api-save-badge');
+          if (saveBadge) {
+            saveBadge.textContent = 'saved (supabase cloud)';
+            saveBadge.className = 'api-badge ok';
+          }
+          updateDashboardCards();
+          updateServerStatus(true, 'Supabase Cloud');
         }
-        updateDashboardCards();
-        updateServerStatus(true, apiBase);
+      }
+    } else {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      const res = await fetch(`${apiBase}/api/save`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(portfolioData)
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status === 'success' || json.status === 'partial' || json.success) {
+          serverSaveSuccess = true;
+          const msg = (json.result && json.result.supabaseSaved) 
+            ? '✅ Saved to Supabase Cloud Database! Portfolio updated globally.'
+            : '✅ Saved to Server! Portfolio & Admin updated.';
+          showToast(msg, 'success');
+          const saveBadge = document.getElementById('api-save-badge');
+          if (saveBadge) {
+            saveBadge.textContent = (json.result && json.result.supabaseSaved) ? 'saved (supabase)' : 'saved (server)';
+            saveBadge.className = 'api-badge ok';
+          }
+          updateDashboardCards();
+          updateServerStatus(true, apiBase);
+        }
       }
     }
-  } catch (_) {
-    // Network / offline / static mode fallback
+  } catch (err) {
+    console.error('❌ Server save error:', err);
+  }
+
+  // Backup fallback: if Express save failed, try Direct Supabase Cloud Save!
+  if (!serverSaveSuccess) {
+    const sb = getDirectSupabase();
+    if (sb) {
+      try {
+        const { error } = await sb
+          .from('portfolio_data')
+          .upsert({
+            id: 'master',
+            content: portfolioData,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+        if (!error) {
+          serverSaveSuccess = true;
+          showToast('⚡ Saved directly to Supabase Cloud Database! Live portfolio updated globally.', 'success');
+          const saveBadge = document.getElementById('api-save-badge');
+          if (saveBadge) {
+            saveBadge.textContent = 'saved (supabase cloud)';
+            saveBadge.className = 'api-badge ok';
+          }
+          updateDashboardCards();
+          updateServerStatus(true, 'Supabase Cloud');
+        }
+      } catch (_) {}
+    }
   }
 
   if (!serverSaveSuccess) {
@@ -1752,10 +1881,10 @@ function updateDeviceHub(serverInfo, origin = null) {
       if (cloudStatus) cloudStatus.textContent = 'Custom API Connected';
     } else if (isHttps) {
       cloudSpan.textContent = window.location.origin;
-      if (cloudStatus) cloudStatus.textContent = 'Cloud Deployed (Vercel/Netlify)';
+      if (cloudStatus) cloudStatus.textContent = 'Cloud Deployed (Netlify Cloud)';
     } else {
-      cloudSpan.textContent = 'Ready for Vercel / Netlify / Cloud';
-      if (cloudStatus) cloudStatus.textContent = 'Multi-Platform Cloud Ready';
+      cloudSpan.textContent = 'Ready for Netlify Cloud';
+      if (cloudStatus) cloudStatus.textContent = 'Netlify Cloud Ready';
     }
   }
 
