@@ -1,0 +1,34 @@
+{
+  "name": "rinesh-portfolio-backend",
+  "version": "1.0.0",
+  "description": "Portfolio website for Rinesh Kumar",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test_server.js"
+  },
+  "keywords": [
+    "portfolio",
+    "express",
+    "sound-engineer"
+  ],
+  "author": "Rinesh Kumar",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/server": "^1.4.1",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"
+  }
+}

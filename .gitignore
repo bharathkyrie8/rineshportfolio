@@ -22,3 +22,17 @@ __pycache__/
 *.pyc
 *.pyo
 assets/Showreel_V3.mov
+assets/Showreel V3.mov
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Internal tools & Agent config
+.agents/
+.mcp.json
+

@@ -6187,6 +6187,44 @@ input:focus-visible {
 .footer-three-area {
   background: #010406;
 }
+.footer-three-area.service-area {
+  padding-block-start: 120px;
+  padding-block-end: 80px;
+}
+.footer-three-area.service-area .footer-three-top-left,
+.footer-three-area.service-area .footer-three-form {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 35px;
+}
+.footer-three-area.service-area .contact-details-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.footer-three-area.service-area .contact-detail-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+}
+.footer-three-area.service-area .footer-three-top-info {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+@media screen and (max-width: 991px) {
+  .footer-three-area.service-area .contact-details-box {
+    grid-template-columns: 1fr;
+  }
+}
+@media screen and (max-width: 767px) {
+  .footer-three-area.service-area .footer-three-top-left,
+  .footer-three-area.service-area .footer-three-form {
+    padding: 24px;
+  }
+}
 @media screen and (max-width: 1699px) {
   .footer-three-top-left {
     margin-inline-end: var(--size-6);
@@ -8487,6 +8525,38 @@ body.tw-magic-cursor #magic-cursor {
     inset-block-start: -94px;
   }
 }
+.about-three-area.service-area {
+  background: #010406;
+  padding-block: 120px 80px;
+}
+.about-three-area.service-area .about-three-top {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 40px;
+}
+.about-three-area.service-area .about-three-thumb,
+.about-three-area.service-area .about-three-right {
+  background: transparent;
+}
+.about-three-area.service-area .banner-three-counter-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  padding: 28px;
+}
+.about-three-area.service-area .banner-three-counter-item:nth-child(2) {
+  margin-block-start: 0;
+}
+@media screen and (max-width: 991px) {
+  .about-three-area.service-area .about-three-top {
+    padding: 30px;
+  }
+  .about-three-area.service-area .banner-three-counter-item {
+    max-width: 100%;
+  }
+}
+
 @media screen and (max-width: 991px) {
   .about-three-shape {
     inset-block-start: -73px;

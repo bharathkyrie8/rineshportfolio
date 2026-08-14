@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title id="adminDocTitle">Control Panel — Rinesh Kumar Portfolio</title>
+    <link rel="icon" href="../assets/images/logo/favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+
+    <!-- ══════════ AUTH OVERLAY ══════════ -->
+    <div id="authOverlay" class="auth-overlay">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="auth-logo-top" id="authLogoTop">RINESH</span>
+          <span class="auth-logo-bottom" id="authLogoBot">KUMAR</span>
+        </div>
+        <h2 class="auth-title" id="authPanelTitle">Control Panel</h2>
+        <p class="auth-subtitle">Enter your admin passcode to continue</p>
+        <div class="auth-form">
+          <div class="auth-input-wrap">
+            <i class="ph ph-lock-key"></i>
+            <input type="password" id="passcodeInput" placeholder="Admin Passcode" autocomplete="off" />
+            <button type="button" id="togglePass" class="toggle-pass"><i class="ph ph-eye"></i></button>
+          </div>
+          <div id="authError" class="auth-error" style="display:none">⛔ Invalid passcode. Try again.</div>
+          <button id="loginBtn" class="auth-btn">
+            <span id="loginBtnText">Access Panel</span>
+            <span id="loginSpinner" class="spinner" style="display:none"></span>
+          </button>
+          <div id="authServerStatus" class="auth-server-status" title="Click to test server connection">
+            <span class="status-dot"></span>
+            <span id="authServerStatusText">Checking server...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="../index.html" target="_blank" class="sidebar-logo">
+          <span class="s-logo-top" id="sbLogoTop">RINESH</span>
+          <span class="s-logo-bot" id="sbLogoBot">KUMAR</span>
+        </a>
+        <button class="sidebar-close" id="sidebarClose"><i class="ph ph-x"></i></button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-section="dashboard">
+          <i class="ph ph-squares-four"></i><span>Dashboard</span>
+        </a>
+        <a href="#branding" class="nav-item" data-section="branding">
+          <i class="ph ph-textbox"></i><span>Branding & Titles</span>
+        </a>
+        <a href="#works" class="nav-item" data-section="works">
+          <i class="ph ph-film-strip"></i><span>Works & Projects</span>
+        </a>
+        <a href="#hero" class="nav-item" data-section="hero">
+          <i class="ph ph-house"></i><span>Hero & Video</span>
+        </a>
+        <a href="#about" class="nav-item" data-section="about">
+          <i class="ph ph-user-circle"></i><span>About & Image</span>
+        </a>
+        <a href="#cv" class="nav-item" data-section="cv">
+          <i class="ph ph-file-pdf"></i><span>CV / Resume</span>
+        </a>
+        <a href="#contact" class="nav-item" data-section="contact">
+          <i class="ph ph-share-network"></i><span>Contact & Socials</span>
+        </a>
+        <a href="#security" class="nav-item" data-section="security">
+          <i class="ph ph-shield-check"></i><span>Security</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../index.html" target="_blank" class="view-portfolio-btn">
+          <i class="ph ph-arrow-square-out"></i> View Portfolio
+        </a>
+        <button type="button" class="logout-btn" id="logoutBtn"><i class="ph ph-sign-out"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- ══════════ MAIN WRAPPER ══════════ -->
+    <div class="main-wrapper" id="mainWrapper">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="topbar-menu-btn" id="sidebarToggle"><i class="ph ph-list"></i></button>
+          <div class="topbar-breadcrumb">
+            <span id="topbarPanelName">Control Panel</span>
+            <i class="ph ph-caret-right"></i>
+            <span id="breadcrumbSection">Dashboard</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-status" id="serverStatus">
+            <span class="status-dot online"></span>
+            <span>Server Online</span>
+          </div>
+          <button type="button" class="topbar-save-all-btn" id="topbarSaveBtn" onclick="saveAllData(event, this)">
+            <i class="ph ph-floppy-disk"></i> Save Changes
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- ── DASHBOARD ── -->
+        <section class="panel-section active" id="sec-dashboard">
+          <div class="section-header">
+            <h1 id="dashHeading">Dashboard Overview</h1>
+            <p>Welcome to your portfolio control panel, Rinesh.</p>
+          </div>
+          <div class="dashboard-cards">
+            <div class="dash-card">
+              <div class="dash-card-icon"><i class="ph ph-film-strip"></i></div>
+              <div class="dash-card-info">
+                <span class="dash-card-val" id="dc-total-works">10</span>
+                <span class="dash-card-label">Total Works Managed</span>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon"><i class="ph ph-share-network"></i></div>
+              <div class="dash-card-info">
+                <span class="dash-card-val" id="dc-total-socials">3</span>
+                <span class="dash-card-label">Social Media Links</span>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon"><i class="ph ph-star"></i></div>
+              <div class="dash-card-info">
+                <span class="dash-card-val" id="dc-satisfaction">98%</span>
+                <span class="dash-card-label">Client Satisfaction</span>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon"><i class="ph ph-film-slate"></i></div>
+              <div class="dash-card-info">
+                <span class="dash-card-val" id="dc-projects">150+</span>
+                <span class="dash-card-label">Projects Completed</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-quick-actions">
+            <h3>Quick Management & Data Tools</h3>
+            <div class="quick-btns">
+              <button type="button" onclick="switchSection('branding')"><i class="ph ph-textbox"></i> Change Panel & Site Titles</button>
+              <button type="button" onclick="switchSection('contact')"><i class="ph ph-plus-circle"></i> Add Social Media (+)</button>
+              <button type="button" onclick="switchSection('works')"><i class="ph ph-film-strip"></i> Manage Works & Projects</button>
+              <button type="button" onclick="switchSection('hero')"><i class="ph ph-video-camera"></i> Change Showreel Video</button>
+              <button type="button" onclick="switchSection('about')"><i class="ph ph-image"></i> Change About Photo</button>
+              <button type="button" onclick="switchSection('cv')"><i class="ph ph-file-pdf"></i> Exchange CV PDF</button>
+              <button type="button" onclick="exportDataJson()"><i class="ph ph-download-simple"></i> Export data.json</button>
+              <button type="button" onclick="document.getElementById('importDataInput').click()"><i class="ph ph-upload-simple"></i> Import data.json</button>
+              <input type="file" id="importDataInput" accept=".json,application/json" style="display:none;" onchange="importDataJson(this.files[0])" />
+              <button type="button" onclick="saveAllData(event, this)" class="btn-primary"><i class="ph ph-floppy-disk"></i> Save All Changes</button>
+            </div>
+          </div>
+          <!-- ── MULTI-DEVICE & SERVER SYNC HUB ── -->
+          <div class="device-hub-container">
+            <div class="device-hub-header">
+              <h3 class="device-hub-title"><i class="ph ph-devices"></i> Multi-Device & Server Sync Hub</h3>
+              <span class="device-hub-badge live" id="hub-live-badge"><i class="ph ph-broadcast"></i> Live Sync Active</span>
+            </div>
+            <div class="device-grid">
+              <!-- Desktop / Localhost Card -->
+              <div class="device-card">
+                <div>
+                  <div class="device-card-top">
+                    <div class="device-card-icon"><i class="ph ph-desktop"></i></div>
+                    <div class="device-card-info">
+                      <h4>Desktop / Localhost</h4>
+                      <p>Local browser access & preview</p>
+                    </div>
+                  </div>
+                  <div class="device-url-box">
+                    <span id="hub-local-url">http://localhost:5500</span>
+                    <i class="ph ph-copy" style="cursor:pointer" onclick="copyHubUrl('hub-local-url')" title="Copy URL"></i>
+                  </div>
+                </div>
+                <div class="device-actions">
+                  <a href="../index.html" target="_blank" class="device-btn primary"><i class="ph ph-arrow-square-out"></i> Open Portfolio</a>
+                  <a href="../works.html" target="_blank" class="device-btn"><i class="ph ph-film-strip"></i> Works</a>
+                </div>
+              </div>
+
+              <!-- Mobile / Wi-Fi Network Card -->
+              <div class="device-card">
+                <div>
+                  <div class="device-card-top">
+                    <div class="device-card-icon"><i class="ph ph-device-mobile"></i></div>
+                    <div class="device-card-info">
+                      <h4>Mobile & Wi-Fi Devices</h4>
+                      <p>Access admin & site from any phone on Wi-Fi</p>
+                    </div>
+                  </div>
+                  <div class="device-url-box">
+                    <span id="hub-mobile-url">http://127.0.0.1:5500/admin</span>
+                    <i class="ph ph-copy" style="cursor:pointer" onclick="copyHubUrl('hub-mobile-url')" title="Copy URL"></i>
+                  </div>
+                </div>
+                <div class="device-actions">
+                  <button type="button" class="device-btn primary" onclick="copyHubUrl('hub-mobile-url')"><i class="ph ph-copy"></i> Copy Mobile Admin</button>
+                  <button type="button" class="device-btn" onclick="copyHubUrl('hub-mobile-site-url')"><i class="ph ph-share-network"></i> Copy Site</button>
+                  <span id="hub-mobile-site-url" style="display:none">http://127.0.0.1:5500</span>
+                </div>
+              </div>
+
+              <!-- Cloud & Deployed Server Card -->
+              <div class="device-card">
+                <div>
+                  <div class="device-card-top">
+                    <div class="device-card-icon"><i class="ph ph-cloud-arrow-up"></i></div>
+                    <div class="device-card-info">
+                      <h4>Cloud / Live Server</h4>
+                      <p id="hub-cloud-status">Vercel, Netlify & Live Server Sync</p>
+                    </div>
+                  </div>
+                  <div class="device-url-box">
+                    <span id="hub-cloud-url">Auto-detecting server...</span>
+                    <i class="ph ph-plugs-connected" style="cursor:pointer" onclick="openConnModal()" title="Configure Remote API"></i>
+                  </div>
+                </div>
+                <div class="device-actions">
+                  <button type="button" class="device-btn primary" onclick="openConnModal()"><i class="ph ph-gear"></i> Server Settings</button>
+                  <button type="button" class="device-btn" onclick="getApiBase(true)"><i class="ph ph-arrows-clockwise"></i> Re-Sync</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-api-status" style="margin-top:20px;">
+            <h3>Server API Status</h3>
+            <div class="api-endpoints">
+              <div class="api-row"><span class="api-method get">GET</span><span class="api-path">/api/data</span><span class="api-badge ok" id="api-data-badge">connected</span></div>
+              <div class="api-row"><span class="api-method post">POST</span><span class="api-path">/api/save</span><span class="api-badge ok" id="api-save-badge">ready</span></div>
+              <div class="api-row"><span class="api-method post">POST</span><span class="api-path">/api/upload</span><span class="api-badge ok" id="api-upload-badge">drag-drop active</span></div>
+              <div class="api-row"><span class="api-method post">POST</span><span class="api-path">/api/auth/login</span><span class="api-badge ok">authenticated</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── BRANDING & TITLES ── -->
+        <section class="panel-section" id="sec-branding">
+          <div class="section-header">
+            <h1>Branding & Title Customization</h1>
+            <p>Customize the Control Panel title, sidebar logo, and website tab title.</p>
+          </div>
+          <div class="form-block">
+            <label><i class="ph ph-textbox"></i> Control Panel Titles</label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Control Panel Title</label>
+                <input type="text" id="branding-panel-title" placeholder="e.g. Control Panel" />
+                <span class="form-hint">Shown in topbar breadcrumb, login header, and page title</span>
+              </div>
+              <div class="form-group">
+                <label>Portfolio Site Page Title</label>
+                <input type="text" id="branding-site-title" placeholder="e.g. Rinesh Portfolio" />
+                <span class="form-hint">Browser tab title for index.html & works.html</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <label><i class="ph ph-text-h-one"></i> Sidebar & Logo Text</label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Logo Top Text (Main Name)</label>
+                <input type="text" id="branding-logo-top" placeholder="e.g. RINESH" />
+              </div>
+              <div class="form-group">
+                <label>Logo Bottom Text (Sub Line)</label>
+                <input type="text" id="branding-logo-bottom" placeholder="e.g. KUMAR" />
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save Branding Settings</button>
+          </div>
+        </section>
+
+        <!-- ── WORKS & PROJECTS ── -->
+        <section class="panel-section" id="sec-works">
+          <div class="section-header d-flex justify-content-between align-items-center">
+            <div>
+              <h1>Works & Projects Manager</h1>
+              <p>Add, edit, or delete items shown on the <code>works.html</code> page. Drag and drop images & videos directly!</p>
+            </div>
+            <button type="button" class="btn-primary" onclick="addNewWorkItem(event)"><i class="ph ph-plus-bold"></i> Add New Project</button>
+          </div>
+          <div id="works-list" class="works-grid-editor"></div>
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save Works & Projects</button>
+          </div>
+        </section>
+
+        <!-- ── HERO & VIDEO SECTION ── -->
+        <section class="panel-section" id="sec-hero">
+          <div class="section-header">
+            <h1>Hero Section & Intro Video</h1>
+            <p>Change your main banner text and drag-and-drop a new Showreel video file.</p>
+          </div>
+
+          <!-- Video Drag & Drop Box & Live Preview -->
+          <div class="form-block">
+            <div class="d-flex justify-content-between align-items-center" style="margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+              <label style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-video-camera" style="font-size:22px; color:var(--accent);"></i> Hero Showreel Video (YouTube / Vimeo / MP4)
+              </label>
+              <span style="font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-dim); padding:3px 10px; border-radius:20px;">Live Auto-Playing Video</span>
+            </div>
+
+            <!-- Live Video Preview Player -->
+            <div id="heroVideoPreviewContainer" style="background:#000; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:16px; position:relative; aspect-ratio:16/9; max-height:360px; display:flex; align-items:center; justify-content:center;">
+              <div id="heroVideoPreviewInner" style="width:100%; height:100%;">
+                <video class="intro-video" autoplay muted loop playsinline controls preload="auto" poster="../assets/images/shapes/rinesh_hero.png" style="width:100%; height:100%; object-fit:cover;">
+                  <source src="../assets/Showreel_V3.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+
+
+
+            <!-- Video Drag & Drop Box -->
+            <div class="drop-target-box" id="heroVideoDropZone" style="padding:22px 16px;">
+              <i class="ph ph-film-reel drop-icon"></i>
+              <p class="drop-text">Drag & Drop <strong>Video File (.mp4, .mov, .webm)</strong> or <span class="browse-link">click to select</span></p>
+              <input type="file" id="heroVideoFileInput" accept="video/mp4,video/quicktime,video/webm" style="display:none;" />
+            </div>
+
+            <!-- Path / URL Input -->
+            <div class="media-preview-bar">
+              <span class="preview-label">Active Video URL / Path:</span>
+              <input type="text" id="hero-video-path" placeholder="e.g. https://www.youtube.com/watch?v=... or https://github.com/.../blob/main/assets/video.mp4" oninput="updateHeroVideoPreview(this.value)" />
+            </div>
+            <span class="form-hint" style="margin-top:6px; display:block;">💡 <strong>Pro Tip for Vercel/Netlify/GitHub Pages</strong>: Paste any <strong>YouTube</strong> link, <strong>Vimeo</strong> link, <strong>GitHub video link</strong> (blob or raw), or any online MP4 URL. It embeds automatically and autoplays smoothly on all devices!</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Hero Main Title</label>
+              <input type="text" id="hero-title" placeholder="e.g. sound engineer" />
+              <span class="form-hint">Large animated text shown above the banner</span>
+            </div>
+            <div class="form-group">
+              <label>Subtitle (Your Name Line)</label>
+              <input type="text" id="hero-subtitle" placeholder="e.g. Hello! I'm Rinesh Kumar" />
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text" id="hero-description" placeholder="e.g. a professional sound engineer & music composer." />
+            </div>
+            <div class="form-group full">
+              <label>Center Tagline</label>
+              <input type="text" id="hero-tagline" placeholder="e.g. Sound engineering, design and music scoring made better." />
+            </div>
+            <div class="form-group">
+              <label>CTA Button Label</label>
+              <input type="text" id="hero-cta-label" placeholder="e.g. view projects" />
+            </div>
+            <div class="form-group">
+              <label>CTA Button Link</label>
+              <input type="text" id="hero-cta-link" placeholder="e.g. works.html" />
+            </div>
+          </div>
+
+          <div class="form-block">
+            <label>Skills / Services List</label>
+            <div id="hero-skills-list" class="tag-list"></div>
+            <div class="tag-add-row">
+              <input type="text" id="hero-skill-input" placeholder="Add a skill..." />
+              <button type="button" onclick="addSkill(event)"><i class="ph ph-plus"></i> Add</button>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <label>Stats / Counter Numbers</label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Client Satisfaction (%)</label>
+                <input type="number" id="hero-stat-satisfaction" min="0" max="100" />
+              </div>
+              <div class="form-group">
+                <label>Projects Completed</label>
+                <input type="number" id="hero-stat-projects" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Global Clients</label>
+                <input type="number" id="hero-stat-clients" min="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save Hero Section</button>
+          </div>
+        </section>
+
+        <!-- ── ABOUT & IMAGE ── -->
+        <section class="panel-section" id="sec-about">
+          <div class="section-header">
+            <h1>About Me & Profile Image</h1>
+            <p>Update your biography, stats, and drag-and-drop a new profile picture.</p>
+          </div>
+
+          <!-- About Page Big Featured Image Drop & Drop Box -->
+          <div class="form-block" style="border: 2px solid var(--accent-glow);">
+            <div class="d-flex justify-content-between align-items-center" style="margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+              <label style="font-size:15px; font-weight:800; color:var(--text-primary); margin:0; display:flex; align-items:center; gap:8px;">
+                <i class="ph ph-image-square" style="font-size:22px; color:var(--accent);"></i> About Section Showcase Photo (Live Guitar Performance)
+              </label>
+              <span style="font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-dim); padding:3px 10px; border-radius:20px;">Main Showcase Photo</span>
+            </div>
+
+            <!-- Big Live Image Preview -->
+            <div style="background:#000; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:16px; position:relative; text-align:center; max-height:340px; display:flex; align-items:center; justify-content:center;">
+              <img id="aboutImgPreviewSrc" src="../assets/images/thumbs/rinesh_guitar.jpg" alt="About Big Featured Image" style="max-width:100%; max-height:320px; object-fit:contain; border-radius:var(--radius-sm);" />
+            </div>
+
+            <!-- Drag & Drop Upload Zone -->
+            <div class="drop-target-box" id="aboutImgDropZone" style="padding:24px 16px; text-align:center;">
+              <i class="ph ph-cloud-arrow-up drop-icon" style="font-size:36px; color:var(--accent); margin-bottom:6px;"></i>
+              <p class="drop-text" style="font-size:15px; margin-bottom:6px;">
+                <strong>Drag & Drop your new About Photo</strong> here
+              </p>
+              <button type="button" class="btn-secondary" style="font-size:13px; padding:6px 16px; margin-top:4px;" onclick="document.getElementById('aboutImgFileInput').click()">
+                <i class="ph ph-folder-open"></i> Browse & Choose Image File
+              </button>
+              <input type="file" id="aboutImgFileInput" accept="image/*" style="display:none;" />
+            </div>
+
+            <!-- Path Input -->
+            <div class="media-preview-bar" style="margin-top:12px;">
+              <span class="preview-label">Active Image Path / URL:</span>
+              <input type="text" id="about-profile-image" placeholder="e.g. assets/images/thumbs/rinesh_guitar.jpg" oninput="updateAboutImgPreview(this.value)" />
+            </div>
+            <span class="form-hint" style="margin-top:6px; display:block;">💡 <strong>Instant Update</strong>: Dropping or selecting any image file automatically compresses it and syncs with the live portfolio & Supabase database!</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="about-name" placeholder="e.g. Rinesh Kumar" />
+            </div>
+            <div class="form-group">
+              <label>Role / Title</label>
+              <input type="text" id="about-role" placeholder="e.g. Sound Engineer & Composer" />
+            </div>
+            <div class="form-group">
+              <label>Years of Experience</label>
+              <input type="text" id="about-years" placeholder="e.g. 5+" />
+            </div>
+            <div class="form-group full">
+              <label>About Section Heading</label>
+              <textarea id="about-section-title" rows="3" placeholder="The large italic text at the top of about section..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <label>Biography Paragraphs</label>
+            <div id="bio-paragraphs-list"></div>
+            <button type="button" class="add-btn" onclick="addBioParagraph(event)"><i class="ph ph-plus"></i> Add Paragraph</button>
+          </div>
+
+          <div class="form-block">
+            <label>About Stats</label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Client Satisfaction (%)</label>
+                <input type="number" id="about-stat-satisfaction" min="0" max="100" />
+              </div>
+              <div class="form-group">
+                <label>Films & Albums Scored</label>
+                <input type="number" id="about-stat-films" min="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save About Section</button>
+          </div>
+        </section>
+
+        <!-- ── CV / RESUME EXCHANGE ── -->
+        <section class="panel-section" id="sec-cv">
+          <div class="section-header">
+            <h1>CV / Resume Exchange</h1>
+            <p>Upload or replace your active CV PDF file directly with drag & drop.</p>
+          </div>
+
+          <div class="form-block">
+            <label><i class="ph ph-file-pdf"></i> Upload New CV PDF File (Drag & Drop)</label>
+            <div class="drop-target-box" id="cvDropZone">
+              <i class="ph ph-file-arrow-up drop-icon" style="color:#ef4444;"></i>
+              <p class="drop-text">Drag & Drop your <strong>Resume PDF (.pdf)</strong> here, or <span class="browse-link">click to select PDF file</span></p>
+              <input type="file" id="cvFileInput" accept="application/pdf" style="display:none;" />
+            </div>
+            <div class="form-grid" style="margin-top:16px;">
+              <div class="form-group">
+                <label>Active CV File Path</label>
+                <input type="text" id="cv-filepath" placeholder="e.g. assets/Rinesh_CV.pdf" />
+              </div>
+              <div class="form-group">
+                <label>Downloadable File Name</label>
+                <input type="text" id="cv-downloadname" placeholder="e.g. Rinesh_Kumar_Resume.pdf" />
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save CV Settings</button>
+          </div>
+        </section>
+
+        <!-- ── CONTACT & SOCIAL ── -->
+        <section class="panel-section" id="sec-contact">
+          <div class="section-header">
+            <h1>Contact Details & Dynamic Social Media</h1>
+            <p>Update contact information and add unlimited custom social media links with the (+) Plus button!</p>
+          </div>
+
+          <div class="form-block">
+            <label>Contact Details</label>
+            <div class="form-group">
+              <label>Contact Section Heading</label>
+              <input type="text" id="contact-section-title" placeholder="e.g. Let's create something meaningful" />
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label><i class="ph ph-envelope"></i> Email Address</label>
+                <input type="email" id="contact-email" placeholder="e.g. rineshsoundscraft@gmail.com" />
+              </div>
+              <div class="form-group">
+                <label><i class="ph ph-phone"></i> Phone Number</label>
+                <input type="text" id="contact-phone" placeholder="e.g. +91 93602 37280" />
+              </div>
+              <div class="form-group">
+                <label><i class="ph ph-whatsapp-logo"></i> WhatsApp Number (digits only)</label>
+                <input type="text" id="contact-whatsapp" placeholder="e.g. 919360237280" />
+              </div>
+            </div>
+          </div>
+
+          <!-- DYNAMIC SOCIAL MEDIA MANAGER WITH (+) PLUS BUTTON -->
+          <div class="form-block">
+            <div class="d-flex justify-content-between align-items-center" style="margin-bottom:16px;">
+              <label style="margin:0;"><i class="ph ph-share-network"></i> Dynamic Social Media Links</label>
+              <button class="btn-primary" type="button" onclick="addNewSocialLink(event)" style="padding:6px 14px; font-size:12px;">
+                <i class="ph ph-plus-bold"></i> Add Social Link (+)
+              </button>
+            </div>
+            <div id="social-links-list" class="social-links-grid"></div>
+          </div>
+
+          <div class="form-block">
+            <label>Footer / Copyright</label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Copyright Name</label>
+                <input type="text" id="footer-copyright-name" placeholder="e.g. Rinesh Kumar" />
+              </div>
+              <div class="form-group">
+                <label>Copyright Year</label>
+                <input type="text" id="footer-copyright-year" placeholder="e.g. 2026" />
+              </div>
+            </div>
+          </div>
+
+          <div class="save-row">
+            <button type="button" class="btn-primary" onclick="saveAllData(event, this)"><i class="ph ph-floppy-disk"></i> Save Contact & Socials</button>
+          </div>
+        </section>
+
+        <!-- ── SECURITY ── -->
+        <section class="panel-section" id="sec-security">
+          <div class="section-header">
+            <h1>Security Settings</h1>
+            <p>Change your admin passcode.</p>
+          </div>
+          <div class="security-card">
+            <div class="form-group">
+              <label>Current Passcode</label>
+              <div class="pass-input-wrap">
+                <input type="password" id="current-pass" placeholder="Enter current passcode" />
+                <button type="button" onclick="togglePassField('current-pass')"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>New Passcode</label>
+              <div class="pass-input-wrap">
+                <input type="password" id="new-pass" placeholder="Enter new passcode (min 6 chars)" />
+                <button type="button" onclick="togglePassField('new-pass')"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Passcode</label>
+              <div class="pass-input-wrap">
+                <input type="password" id="confirm-pass" placeholder="Re-enter new passcode" />
+                <button type="button" onclick="togglePassField('confirm-pass')"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <div id="security-msg" class="security-msg" style="display:none"></div>
+            <div class="save-row">
+              <button type="button" class="btn-primary" onclick="changePasscode(event, this)"><i class="ph ph-shield-check"></i> Update Passcode</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- CONNECTION & DATA MODAL -->
+    <div class="conn-modal-overlay" id="connectionModal" onclick="if(event.target===this) closeConnModal()">
+      <div class="conn-modal-card">
+        <div class="conn-modal-header">
+          <h3><i class="ph ph-plugs-connected"></i> Server & API Connection</h3>
+          <button type="button" class="conn-modal-close" onclick="closeConnModal()" title="Close">&times;</button>
+        </div>
+        <div class="conn-status-banner online" id="modalConnBanner">
+          <i class="ph ph-pulse"></i>
+          <span id="modalConnStatusText">Checking connection...</span>
+        </div>
+        <div class="conn-field-group">
+          <label>Custom Backend API URL (Optional for multi-host deployments)</label>
+          <input type="url" id="customApiUrlInput" placeholder="https://your-backend-api.onrender.com" />
+          <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">Leave blank to auto-detect backend on the current domain / localhost.</small>
+        </div>
+        <div class="conn-actions">
+          <button type="button" class="conn-btn-primary" onclick="saveCustomApi()"><i class="ph ph-check"></i> Connect & Save</button>
+          <button type="button" class="conn-btn-secondary" onclick="resetApiAutoDetect()"><i class="ph ph-arrows-clockwise"></i> Auto-Detect</button>
+          <button type="button" class="conn-btn-secondary" onclick="exportDataJson()"><i class="ph ph-download-simple"></i> Export Backup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- SIDEBAR OVERLAY (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

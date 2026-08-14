@@ -48,23 +48,25 @@
     });
   }
   smoothSctoll();
+  try {
+    gsap.registerPlugin(ScrollTrigger, ScrollSmoother, ScrollToPlugin);
+  } catch (e) {
+    // Plugins already registered or unavailable
+  }
   if ($("#smooth-wrapper").length && $("#smooth-content").length) {
-gsap.registerPlugin(
-      ScrollTrigger,
-      ScrollSmoother,
-      ScrollToPlugin,
-    );
-    gsap.config({
-      nullTargetWarn: false,
-    });
-    let smoother = ScrollSmoother.create({
-      smoothTouch: 0.2,
-      smooth: 4,
-      effects: true,
-      normalizeScroll: false,
-      ignoreMobileResize: true,
-    });
-    window.smoother = smoother;
+    if (typeof ScrollSmoother !== "undefined") {
+      gsap.config({
+        nullTargetWarn: false,
+      });
+      let smoother = ScrollSmoother.create({
+        smoothTouch: 0.01,
+        smooth: 1,
+        effects: true,
+        normalizeScroll: false,
+        ignoreMobileResize: true,
+      });
+      window.smoother = smoother;
+    }
   }
 
   ////////////////////////////////////////////////////
