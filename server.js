@@ -187,12 +187,22 @@ async function validatePasscode(passcode) {
       if (parsed && parsed.passcode) stored = parsed.passcode;
     }
   } catch (_) {}
+  
+  const localData = readLocalDatabase();
+  if (localData && localData.security && localData.security.adminPasscode) {
+    stored = localData.security.adminPasscode;
+  }
+
   return passcode === stored || passcode === process.env.ADMIN_PASSCODE || passcode === 'admin123';
 }
 
 async function updateAdminPasscode(newPasscode) {
   try {
     fs.writeFileSync(PASSCODE_FILE, JSON.stringify({ passcode: newPasscode, updated_at: new Date().toISOString() }, null, 2), 'utf8');
+    const localData = readLocalDatabase();
+    localData.security = localData.security || {};
+    localData.security.adminPasscode = newPasscode;
+    saveLocalDatabase(localData);
     return true;
   } catch (_) {
     return false;
@@ -365,9 +375,33 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   });
 });
 
-app.post('/api/auth/security', async (req, res) => {
+/**
+ * POST /api/verify-passcode or /api/auth/verify
+ */
+app.post(['/api/verify-passcode', '/api/auth/verify'], async (req, res) => {
   try {
-    const { currentPasscode, newPasscode } = req.body;
+    const passcode = req.body.passcode || req.body.currentPasscode;
+    if (!passcode) {
+      return res.status(400).json({ success: false, status: 'error', error: 'Passcode required' });
+    }
+    const isValid = await validatePasscode(passcode);
+    if (isValid) {
+      return res.status(200).json({ success: true, status: 'success', message: 'Passcode valid' });
+    } else {
+      return res.status(401).json({ success: false, status: 'error', error: 'Passcode incorrect' });
+    }
+  } catch (err) {
+    return res.status(500).json({ success: false, status: 'error', error: err.message });
+  }
+});
+
+/**
+ * POST /api/change-passcode or /api/auth/security
+ */
+app.post(['/api/change-passcode', '/api/auth/security'], async (req, res) => {
+  try {
+    const currentPasscode = req.body.currentPasscode || req.body.current || req.body.passcode;
+    const newPasscode = req.body.newPasscode || req.body.newPass;
     if (!currentPasscode || !newPasscode) {
       return res.status(400).json({
         success: false,
@@ -385,11 +419,11 @@ app.post('/api/auth/security', async (req, res) => {
       });
     }
 
-    if (newPasscode.length < 6) {
+    if (newPasscode.length < 4) {
       return res.status(400).json({
         success: false,
         status: 'error',
-        error: 'New passcode must be at least 6 characters'
+        error: 'New passcode must be at least 4 characters'
       });
     }
 

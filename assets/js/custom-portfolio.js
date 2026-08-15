@@ -136,7 +136,7 @@ $(document).ready(function() {
         } else {
           const targetElement = document.querySelector(targetId);
           if (targetElement) {
-            const offset = 80;
+            const offset = (targetId === "#works" ? 20 : 80);
             const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
             const offsetPosition = elementPosition - offset;
 
@@ -154,6 +154,28 @@ $(document).ready(function() {
         }
       });
     });
+
+    // Auto-scroll to section if hash is present in URL on page load (e.g. works.html#works)
+    if (window.location.hash && window.location.hash.length > 1) {
+      const hash = window.location.hash;
+      const targetElement = document.querySelector(hash);
+      if (targetElement) {
+        setTimeout(() => {
+          const smoother = window.smoother || (typeof ScrollSmoother !== 'undefined' ? ScrollSmoother.get() : null);
+          if (smoother) {
+            let offset = (hash === "#works" ? "top 10px" : "top 100px");
+            smoother.scrollTo(hash, true, offset);
+          } else {
+            const offset = (hash === "#works" ? 20 : 80);
+            const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({
+              top: elementPosition - offset,
+              behavior: 'smooth'
+            });
+          }
+        }, 600);
+      }
+    }
 
     // Scroll Spy implementation (active if section elements exist)
     if (document.querySelector('#about')) {

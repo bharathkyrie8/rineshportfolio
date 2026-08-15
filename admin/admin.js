@@ -1610,9 +1610,9 @@ async function changePasscode(e, btn) {
     e.preventDefault();
     e.stopPropagation();
   }
-  const current = document.getElementById('current-pass').value;
-  const newPass  = document.getElementById('new-pass').value;
-  const confirm  = document.getElementById('confirm-pass').value;
+  const current = document.getElementById('current-pass').value.trim();
+  const newPass  = document.getElementById('new-pass').value.trim();
+  const confirm  = document.getElementById('confirm-pass').value.trim();
   const msgEl    = document.getElementById('security-msg');
 
   msgEl.style.display = 'none';
@@ -1622,8 +1622,8 @@ async function changePasscode(e, btn) {
     showSecurityMsg('Please fill in all fields.', 'error');
     return;
   }
-  if (newPass.length < 6) {
-    showSecurityMsg('New passcode must be at least 6 characters.', 'error');
+  if (newPass.length < 4) {
+    showSecurityMsg('New passcode must be at least 4 characters.', 'error');
     return;
   }
   if (newPass !== confirm) {
@@ -1631,40 +1631,68 @@ async function changePasscode(e, btn) {
     return;
   }
 
-  const apiBase = await getApiBase();
+  let verified = false;
+  let isOffline = false;
 
   try {
-    const res = await fetch(`${apiBase}/api/auth/login`, {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/verify-passcode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ passcode: current })
     });
-    const json = await res.json();
-
-    if (json.status !== 'success') {
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'success' || json.success) {
+        verified = true;
+      }
+    } else if (res.status === 401) {
       showSecurityMsg('❌ Current passcode is incorrect.', 'error');
       return;
+    } else {
+      isOffline = true;
     }
   } catch (err) {
-    const storedPass = portfolioData.security?.adminPasscode || 'admin123';
-    if (current !== storedPass) {
-      showSecurityMsg('❌ Current passcode is incorrect (server offline).', 'error');
+    isOffline = true;
+  }
+
+  if (isOffline && !verified) {
+    let storedPass = portfolioData.security?.adminPasscode;
+    if (!storedPass) {
+      const offlinePending = localStorage.getItem('rk_offline_pending');
+      if (offlinePending) {
+        try {
+          const parsed = JSON.parse(offlinePending);
+          if (parsed?.security?.adminPasscode) storedPass = parsed.security.adminPasscode;
+        } catch (_) {}
+      }
+    }
+    if (!storedPass) storedPass = 'admin123';
+
+    if (current === storedPass) {
+      verified = true;
+    } else {
+      showSecurityMsg('❌ Current passcode is incorrect.', 'error');
       return;
     }
   }
 
-  portfolioData.security = portfolioData.security || {};
-  portfolioData.security.adminPasscode = newPass;
+  if (verified) {
+    portfolioData.security = portfolioData.security || {};
+    portfolioData.security.adminPasscode = newPass;
 
-  const saved = await trySave();
-  if (saved) {
-    showSecurityMsg('✅ Passcode updated successfully. Please log in again.', 'success');
+    const saved = await trySave();
+    if (saved) {
+      showSecurityMsg('✅ Passcode updated successfully on server! Logging out...', 'success');
+    } else {
+      localStorage.setItem('rk_offline_pending', JSON.stringify(portfolioData));
+      showSecurityMsg('✅ Passcode updated in local cache! Logging out...', 'success');
+    }
+
     document.getElementById('current-pass').value = '';
     document.getElementById('new-pass').value = '';
     document.getElementById('confirm-pass').value = '';
-    setTimeout(logout, 2500);
-  } else {
-    showSecurityMsg('⚠️ Passcode saved locally in cache. Start server to sync to data.json.', 'error');
+    setTimeout(logout, 2200);
   }
 }
 

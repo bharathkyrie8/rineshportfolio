@@ -1,3 +1,179 @@
 {
-  "test": true
+  "branding": {
+    "panelTitle": "Control Panel",
+    "siteTitle": "Rinesh Portfolio",
+    "logoTop": "RINESH",
+    "logoBottom": "KUMAR"
+  },
+  "hero": {
+    "title": "sound engineer",
+    "subtitle": "Hello! I'm Rinesh Kumar,a professional sound engineer & music composer.",
+    "description": "Sound engineering, design and music scoring made better.",
+    "videoPath": "https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing",
+    "skills": [
+      "Mixing & Mastering",
+      "Sound Design & Foley",
+      "Music Composing",
+      "Background Scoring",
+      "Audio Post-Production"
+    ],
+    "stats": {
+      "clientSatisfaction": 98,
+      "projectsCompleted": 150,
+      "globalClients": 96
+    },
+    "centerTagline": "Sound engineering, design and music scoring made better.",
+    "ctaLabel": "view projects",
+    "ctaLink": "works.html"
+  },
+  "about": {
+    "name": "Rinesh Kumar",
+    "role": "Sound Engineer & Composer",
+    "yearsExperience": "5+",
+    "profileImage": "assets/images/thumbs/rinesh_guitar.jpg",
+    "bio": [
+      "I’m a passionate sound engineer, sound designer, and music composer focused on creating immersive, pristine audio experiences. With over 5 years of professional experience, I blend artistic creativity with advanced technical expertise to produce tracks, soundscapes, and scores that resonate deeply with listeners.",
+      "With a strong ear for detail & a solid technical foundation in acoustics, mixing, and synthesis, I transform raw concepts into polished sonic realities. I believe great sound is purposeful—every layer, frequency, and transition is crafted to enhance the emotional impact of the project.",
+      "From initial concept to final master, I work closely with filmmakers, game developers, and musicians to understand their goals and sonic vision."
+    ],
+    "sectionTitle": "I am dedicated to bringing your sonic vision to life by crafting unique, highly immersive, and impactful audio experiences. My work speaks louder than words—explore the results.",
+    "stats": {
+      "clientSatisfaction": 99,
+      "filmsAlbumsScored": 50
+    }
+  },
+  "works": [
+    {
+      "id": "work-1",
+      "title": "MANGA",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/manga.webp",
+      "videoUrl": "",
+      "description": "First look poster of our next Short Film MANGA. Written & Directed by Pradeep Spade."
+    },
+    {
+      "id": "work-2",
+      "title": "The Briefcase",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/the_briefcase.webp",
+      "videoUrl": "",
+      "description": "Official poster and first look of the thriller short film 'The Briefcase'."
+    },
+    {
+      "id": "work-3",
+      "title": "Puriyadha Puthir (Ep 3)",
+      "category": "web-series",
+      "categoryBadge": "Web Series",
+      "image": "works/puriyadha_puthir_ep3.webp",
+      "videoUrl": "",
+      "description": "Episode 3: 'Way to End'. The final episode of the thriller series coming soon."
+    },
+    {
+      "id": "work-4",
+      "title": "Butcher",
+      "category": "youtube-release",
+      "categoryBadge": "YouTube Release",
+      "image": "works/butcher.jpg",
+      "videoUrl": "",
+      "description": "Our short release 'Butcher' is now streaming live on YouTube."
+    },
+    {
+      "id": "work-5",
+      "title": "Sugar Date",
+      "category": "youtube-release",
+      "categoryBadge": "YouTube Release",
+      "image": "works/sugar_date.jpg",
+      "videoUrl": "",
+      "description": "Sugar Date is live and out now on YouTube. Watch it now!"
+    },
+    {
+      "id": "work-6",
+      "title": "Welcome on Board",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/welcome_on_board.webp",
+      "videoUrl": "",
+      "description": "Not just a story, but an immersive cinematic experience. Welcome on Board is now live."
+    },
+    {
+      "id": "work-7",
+      "title": "Late Comers",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/late_comers.jpg",
+      "videoUrl": "",
+      "description": "Stay tuned for the official trailer & release of our film 'Late Comers'."
+    },
+    {
+      "id": "work-8",
+      "title": "காத்திருங்கள் (Stay Tuned)",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/stay_tuned.jpg",
+      "videoUrl": "",
+      "description": "Collaboration film project with the Tamil Nadu Police (Tenkasi Division)."
+    },
+    {
+      "id": "work-9",
+      "title": "It's Done",
+      "category": "short-film",
+      "categoryBadge": "Short Film",
+      "image": "works/its_done.webp",
+      "videoUrl": "",
+      "description": "Post-production successfully wrapped for this Tamil short film project."
+    },
+    {
+      "id": "work-10",
+      "title": "Personal Cinematic Project",
+      "category": "short-film",
+      "categoryBadge": "Personal Project",
+      "image": "works/most_personal.jpg",
+      "videoUrl": "",
+      "description": "“The most personal is the most creative” — artistic showcase poster."
+    }
+  ],
+  "socialLinks": [
+    {
+      "id": "soc-1",
+      "name": "Instagram",
+      "icon": "ph-instagram-logo",
+      "url": "https://www.instagram.com/rinesh_kumar_30?igsh=bjJtcndxaHdvZnpy"
+    },
+    {
+      "id": "soc-2",
+      "name": "WhatsApp",
+      "icon": "ph-whatsapp-logo",
+      "url": "https://wa.me/919360237280"
+    },
+    {
+      "id": "soc-3",
+      "name": "LinkedIn",
+      "icon": "ph-linkedin-logo",
+      "url": "https://www.linkedin.com/in/rinesh-kumar-92606b303/"
+    }
+  ],
+  "contact": {
+    "email": "rineshsoundscraft@gmail.com",
+    "phone": "+91 93602 37280",
+    "whatsapp": "919360237280",
+    "sectionTitle": "Let’s create something meaningful"
+  },
+  "footer": {
+    "copyrightName": "Rinesh Kumar",
+    "copyrightYear": "2026",
+    "portfolioTitle": "Rinesh Kumar Portfolio"
+  },
+  "cv": {
+    "filePath": "assets/Rinesh_CV.pdf",
+    "downloadName": "Rinesh_Kumar_Resume.pdf"
+  },
+  "security": {
+    "adminPasscode": "rinesh"
+  },
+  "meta": {
+    "lastUpdated": "2026-08-15T07:12:47.552Z",
+    "version": "1.2.0"
+  }
 }
