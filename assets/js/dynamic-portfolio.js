@@ -1,6 +1,6 @@
 /**
  * Dynamic Portfolio Synchronizer
- * Connects the public portfolio (index.html & works.html) to the live Supabase / Backend API (/api/data)
+ * Connects the public portfolio (index.html & works.html) to the live Backend API (/api/data)
  * Updates all sections in real-time: Branding, Hero, About, Works Grid, Skills, Experience, Contact & Socials.
  */
 
@@ -46,19 +46,6 @@
     });
   }
 
-  const SUPABASE_CLOUD_URL = 'https://yiqdieaknynuhncycgid.supabase.co';
-  const SUPABASE_CLOUD_KEY = 'sb_publishable_IzCiPG3dn4nhA3v0qrxUiA_N9sx7LQ2';
-
-  let directSupabase = null;
-  function getDirectSupabase() {
-    if (!directSupabase && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-      try {
-        directSupabase = window.supabase.createClient(SUPABASE_CLOUD_URL, SUPABASE_CLOUD_KEY, {
-          auth: { persistSession: false }
-        });
-      } catch (_) {}
-    }
-    return directSupabase;
   function renderHeroVideoHTML(url) {
     if (!url || !url.trim()) return '';
     const clean = url.trim();
@@ -120,7 +107,7 @@
       }
     } catch (_) {}
 
-    // 2. Fetch live data from backend server / Supabase API
+    // 2. Fetch live data from backend server API
     let loadedFromApi = false;
     try {
       const res = await fetch('/api/data?_t=' + Date.now());
@@ -131,31 +118,9 @@
           loadedFromApi = true;
         }
       }
-    } catch (err) {
-      console.log('ℹ️ [PORTFOLIO] Backend Express API not reachable, attempting direct Supabase connection...');
-    }
+    } catch (_) {}
 
-    // 2.5 Try Direct Supabase Cloud connection if Express API is not running
-    if (!loadedFromApi) {
-      const sb = getDirectSupabase();
-      if (sb) {
-        try {
-          const { data, error } = await sb
-            .from('portfolio_data')
-            .select('content')
-            .eq('id', 'master')
-            .single();
-
-          if (!error && data && data.content) {
-            applyAllData(data.content);
-            loadedFromApi = true;
-            console.log('⚡ [PORTFOLIO] Loaded live portfolio data directly from Supabase Cloud Database!');
-          }
-        } catch (_) {}
-      }
-    }
-
-    // 3. Fallback: Fetch static data.json file if API server & Supabase are unreachable
+    // 3. Fallback: Fetch static data.json file if API server is offline
     if (!loadedFromApi) {
       const paths = ['data.json', '../data.json', './data.json', '/data.json'];
       for (const p of paths) {

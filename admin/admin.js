@@ -15,21 +15,6 @@ let heartbeatInterval = null;
 
 let latestServerInfo = null;
 
-const SUPABASE_CLOUD_URL = 'https://yiqdieaknynuhncycgid.supabase.co';
-const SUPABASE_CLOUD_KEY = 'sb_publishable_IzCiPG3dn4nhA3v0qrxUiA_N9sx7LQ2';
-
-let directSupabase = null;
-function getDirectSupabase() {
-  if (!directSupabase && typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-    try {
-      directSupabase = window.supabase.createClient(SUPABASE_CLOUD_URL, SUPABASE_CLOUD_KEY, {
-        auth: { persistSession: false }
-      });
-    } catch (_) {}
-  }
-  return directSupabase;
-}
-
 async function pingCandidate(url, timeoutMs = 1200) {
   if (url === null || url === undefined) return { ok: false };
   const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
@@ -137,20 +122,6 @@ async function getApiBase(forceProbe = false) {
       updateServerStatus(true, origin);
       return origin;
     }
-  }
-
-  // 5. Test Direct Supabase Cloud Connection if local server is not listening
-  const sb = getDirectSupabase();
-  if (sb) {
-    try {
-      const { data, error } = await sb.from('portfolio_data').select('updated_at').limit(1);
-      if (!error || (error && error.code === 'PGRST116')) {
-        cachedApiBase = 'SUPABASE_CLOUD';
-        sessionStorage.setItem('rk_active_api', 'SUPABASE_CLOUD');
-        updateServerStatus(true, 'Supabase Cloud');
-        return 'SUPABASE_CLOUD';
-      }
-    } catch (_) {}
   }
 
   // Default fallback if server is offline (Static / GitHub Pages mode)
@@ -352,58 +323,22 @@ async function loadData() {
   // 1. Try fetching from dynamic API endpoint
   try {
     const apiBase = await getApiBase();
-    if (apiBase === 'SUPABASE_CLOUD') {
-      const sb = getDirectSupabase();
-      if (sb) {
-        const { data, error } = await sb.from('portfolio_data').select('content').eq('id', 'master').single();
-        if (!error && data && data.content) {
-          portfolioData = data.content;
-          loadedSuccessfully = true;
-          updateServerStatus(true, 'Supabase Cloud');
-          const dataBadge = document.getElementById('api-data-badge');
-          if (dataBadge) {
-            dataBadge.textContent = 'online (supabase cloud)';
-            dataBadge.className = 'api-badge ok';
-          }
-        }
-      }
-    } else {
-      const res = await fetch(`${apiBase}/api/data`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status === 'success' && json.data) {
-          portfolioData = json.data;
-          loadedSuccessfully = true;
-          updateServerStatus(true, apiBase);
-          const dataBadge = document.getElementById('api-data-badge');
-          if (dataBadge) {
-            dataBadge.textContent = 'online (server)';
-            dataBadge.className = 'api-badge ok';
-          }
+    const targetUrl = apiBase ? `${apiBase}/api/data` : '/api/data';
+    const res = await fetch(targetUrl);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'success' && json.data) {
+        portfolioData = json.data;
+        loadedSuccessfully = true;
+        updateServerStatus(true, apiBase);
+        const dataBadge = document.getElementById('api-data-badge');
+        if (dataBadge) {
+          dataBadge.textContent = 'online (server)';
+          dataBadge.className = 'api-badge ok';
         }
       }
     }
   } catch (_) {}
-
-  // 1.5 Try Direct Supabase Cloud as fallback if Express API failed
-  if (!loadedSuccessfully) {
-    const sb = getDirectSupabase();
-    if (sb) {
-      try {
-        const { data, error } = await sb.from('portfolio_data').select('content').eq('id', 'master').single();
-        if (!error && data && data.content) {
-          portfolioData = data.content;
-          loadedSuccessfully = true;
-          updateServerStatus(true, 'Supabase Cloud');
-          const dataBadge = document.getElementById('api-data-badge');
-          if (dataBadge) {
-            dataBadge.textContent = 'online (supabase cloud)';
-            dataBadge.className = 'api-badge ok';
-          }
-        }
-      } catch (_) {}
-    }
-  }
 
   // 2. If API fails, try fetching static data.json from web root
   if (!loadedSuccessfully) {
@@ -643,7 +578,7 @@ async function saveAllData(e, clickedBtn) {
   // 2. Try POSTing to backend server API (/api/save)
   try {
     const apiBase = await getApiBase();
-    const targetUrl = (apiBase && apiBase !== 'SUPABASE_CLOUD') ? `${apiBase}/api/save` : '/api/save';
+    const targetUrl = apiBase ? `${apiBase}/api/save` : '/api/save';
 
     const headers = { 'Content-Type': 'application/json' };
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
@@ -664,35 +599,16 @@ async function saveAllData(e, clickedBtn) {
     console.warn('⚠️ Server save notice:', err.message);
   }
 
-  // 3. Try Direct Supabase Cloud Save if client is configured
-  let supabaseSaveSuccess = false;
-  const sb = getDirectSupabase();
-  if (sb) {
-    try {
-      const { error } = await sb
-        .from('portfolio_data')
-        .upsert({
-          id: 'master',
-          content: portfolioData,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-
-      if (!error) {
-        supabaseSaveSuccess = true;
-      }
-    } catch (_) {}
-  }
-
-  // 4. Update UI Feedback Toast & Badges
-  if (serverSaveSuccess || supabaseSaveSuccess) {
+  // 3. Update UI Feedback Toast & Badges
+  if (serverSaveSuccess) {
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
-      saveBadge.textContent = supabaseSaveSuccess ? 'saved (supabase cloud)' : 'saved (server)';
+      saveBadge.textContent = 'saved (server)';
       saveBadge.className = 'api-badge ok';
     }
     updateDashboardCards();
-    updateServerStatus(true, supabaseSaveSuccess ? 'Supabase Cloud' : 'Express Server');
-    showToast('⚡ Live portfolio updated globally & saved to database!', 'success');
+    updateServerStatus(true, 'Express Server');
+    showToast('⚡ Live portfolio updated & saved to server!', 'success');
   } else {
     updateServerStatus(false);
     showToast('💾 Saved in browser storage! (Offline Mode).', 'info');
@@ -1969,14 +1885,6 @@ async function saveCustomApi() {
     sessionStorage.setItem('rk_active_api', val);
     updateServerStatus(true, val);
     showToast(`🟢 Successfully connected to: ${val}`, 'success');
-    closeConnModal();
-    loadData();
-  } else if (/netlify\.app|github\.io|vercel\.app/i.test(val) || getDirectSupabase()) {
-    localStorage.removeItem('rk_custom_api');
-    cachedApiBase = 'SUPABASE_CLOUD';
-    sessionStorage.setItem('rk_active_api', 'SUPABASE_CLOUD');
-    updateServerStatus(true, 'Supabase Cloud');
-    showToast('⚡ Static Host Detected! Connected Admin Panel directly to Supabase Cloud Database.', 'success');
     closeConnModal();
     loadData();
   } else {

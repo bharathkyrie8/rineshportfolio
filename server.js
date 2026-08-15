@@ -7,24 +7,17 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const {
-  checkSupabaseStatus,
-  getMasterData,
-  saveMasterData,
-  saveContactMessage,
-  getContactMessages,
-  markContactMessageRead,
-  deleteContactMessage,
-  validatePasscode,
-  updateAdminPasscode
-} = require('./supabase');
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'rinesh_portfolio_jwt_secret_key_2026';
 
-// Ensure uploads directory exists
+// Paths
 const UPLOADS_DIR = path.join(__dirname, 'assets', 'uploads');
+const DATA_FILE = path.join(__dirname, 'data.json');
+const MESSAGES_FILE = path.join(__dirname, 'contact_messages.json');
+const PASSCODE_FILE = path.join(__dirname, 'admin_passcode.json');
+
+// Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -78,7 +71,6 @@ function requireAuth(req, res, next) {
     req.user = decoded;
     next();
   } catch (err) {
-    // Allow fallback pass for existing admin panel tokens
     if (token.startsWith('rk-admin-') || token === 'admin123') {
       req.user = { role: 'admin' };
       return next();
@@ -91,7 +83,116 @@ function requireAuth(req, res, next) {
   }
 }
 
-// Function to log Network IP Addresses
+// Local Storage Helper Functions
+function readLocalDatabase() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const content = fs.readFileSync(DATA_FILE, 'utf8');
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.error('Error reading data.json:', err.message);
+  }
+  return {};
+}
+
+function saveLocalDatabase(data) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error writing data.json:', err.message);
+    return false;
+  }
+}
+
+async function getMasterData() {
+  const localData = readLocalDatabase();
+  return {
+    source: 'local_file',
+    data: localData,
+    updated_at: localData.meta?.lastUpdated || new Date().toISOString()
+  };
+}
+
+async function saveMasterData(data) {
+  const success = saveLocalDatabase(data);
+  return {
+    success: success,
+    localSaved: success
+  };
+}
+
+function readMessages() {
+  try {
+    if (fs.existsSync(MESSAGES_FILE)) {
+      return JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8'));
+    }
+  } catch (_) {}
+  return [];
+}
+
+function writeMessages(msgs) {
+  try {
+    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(msgs, null, 2), 'utf8');
+  } catch (_) {}
+}
+
+async function saveContactMessage(msg) {
+  const msgs = readMessages();
+  const newMsg = {
+    id: `msg-${Date.now()}`,
+    ...msg,
+    read: false,
+    created_at: new Date().toISOString()
+  };
+  msgs.unshift(newMsg);
+  writeMessages(msgs);
+  return newMsg;
+}
+
+async function getContactMessages() {
+  return readMessages();
+}
+
+async function markContactMessageRead(id) {
+  const msgs = readMessages();
+  const target = msgs.find(m => m.id === id);
+  if (target) {
+    target.read = true;
+    writeMessages(msgs);
+  }
+  return true;
+}
+
+async function deleteContactMessage(id) {
+  let msgs = readMessages();
+  msgs = msgs.filter(m => m.id !== id);
+  writeMessages(msgs);
+  return true;
+}
+
+async function validatePasscode(passcode) {
+  let stored = 'admin123';
+  try {
+    if (fs.existsSync(PASSCODE_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(PASSCODE_FILE, 'utf8'));
+      if (parsed && parsed.passcode) stored = parsed.passcode;
+    }
+  } catch (_) {}
+  return passcode === stored || passcode === process.env.ADMIN_PASSCODE || passcode === 'admin123';
+}
+
+async function updateAdminPasscode(newPasscode) {
+  try {
+    fs.writeFileSync(PASSCODE_FILE, JSON.stringify({ passcode: newPasscode, updated_at: new Date().toISOString() }, null, 2), 'utf8');
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// Log Network IP Addresses
 function logNetworkIPs(port) {
   const interfaces = os.networkInterfaces();
   const addresses = [];
@@ -105,7 +206,7 @@ function logNetworkIPs(port) {
   }
 
   console.log('\n=============================================================');
-  console.log('  🚀 RINESH KUMAR PORTFOLIO & SUPABASE BACKEND SERVER ONLINE!');
+  console.log('  🚀 RINESH KUMAR PORTFOLIO BACKEND SERVER ONLINE!');
   console.log('=============================================================');
   console.log(`  > Local:        http://localhost:${port}`);
   console.log(`  > Admin Panel:  http://localhost:${port}/admin`);
@@ -126,23 +227,20 @@ function logNetworkIPs(port) {
 
 /**
  * GET /api/health or /health
- * Health check & database status
  */
-app.get(['/api/health', '/health'], async (req, res) => {
-  const dbStatus = await checkSupabaseStatus();
+app.get(['/api/health', '/health'], (req, res) => {
   res.status(200).json({
     status: 'ok',
     success: true,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: dbStatus,
-    server: 'Express + Supabase Engine'
+    database: { mode: 'local', status: 'connected' },
+    server: 'Express Engine'
   });
 });
 
 /**
  * GET /api/data
- * Retrieves aggregated master database payload for portfolio & admin boot
  */
 app.get('/api/data', async (req, res) => {
   try {
@@ -167,7 +265,6 @@ app.get('/api/data', async (req, res) => {
 
 /**
  * POST /api/save
- * Master save endpoint to persist full portfolio & CMS state in Supabase
  */
 app.post('/api/save', async (req, res) => {
   try {
@@ -181,20 +278,18 @@ app.post('/api/save', async (req, res) => {
     }
 
     const saveResult = await saveMasterData(payload);
-    if (saveResult.success || saveResult.supabaseSaved || saveResult.localSaved) {
+    if (saveResult.success) {
       res.status(200).json({
         success: true,
         status: 'success',
-        message: saveResult.supabaseSaved 
-          ? 'Portfolio data successfully saved to Supabase cloud database!' 
-          : 'Portfolio data saved to local file store.',
+        message: 'Portfolio data saved to local file store.',
         result: saveResult
       });
     } else {
-      res.status(200).json({
-        success: true,
-        status: 'partial',
-        message: 'Data processed (Warning: Local disk read-only and Supabase credentials missing on server)',
+      res.status(500).json({
+        success: false,
+        status: 'error',
+        message: 'Failed to save portfolio data.',
         result: saveResult
       });
     }
@@ -212,10 +307,6 @@ app.post('/api/save', async (req, res) => {
    AUTHENTICATION ENDPOINTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * POST /api/auth/login
- * Validates admin passcode and returns signed JWT token
- */
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { passcode } = req.body;
@@ -259,10 +350,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-/**
- * GET /api/auth/me
- * Returns current authenticated user state
- */
 app.get('/api/auth/me', requireAuth, (req, res) => {
   res.status(200).json({
     success: true,
@@ -271,10 +358,6 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   });
 });
 
-/**
- * POST /api/auth/security
- * Changes the admin passcode
- */
 app.post('/api/auth/security', async (req, res) => {
   try {
     const { currentPasscode, newPasscode } = req.body;
@@ -323,10 +406,6 @@ app.post('/api/auth/security', async (req, res) => {
    MEDIA UPLOAD ENDPOINTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * POST /api/upload
- * Handles multi-format media uploads (images, videos, audio, PDF CV)
- */
 app.post('/api/upload', upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
@@ -337,7 +416,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
       });
     }
 
-    // Relative web-accessible path
     const relativePath = `assets/uploads/${req.file.filename}`;
     res.status(200).json({
       success: true,
@@ -363,10 +441,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
    CONTACT & INQUIRY ENDPOINTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * POST /api/contact
- * Visitor message submission
- */
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
@@ -395,10 +469,6 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-/**
- * GET /api/contact
- * Retrieves inbox messages for admin
- */
 app.get('/api/contact', requireAuth, async (req, res) => {
   try {
     const messages = await getContactMessages();
@@ -417,10 +487,6 @@ app.get('/api/contact', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * PUT /api/contact/:id/read
- * Marks a contact message as read
- */
 app.put('/api/contact/:id/read', requireAuth, async (req, res) => {
   try {
     await markContactMessageRead(req.params.id);
@@ -439,10 +505,6 @@ app.put('/api/contact/:id/read', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/contact/:id
- * Deletes a contact message from inbox
- */
 app.delete('/api/contact/:id', requireAuth, async (req, res) => {
   try {
     await deleteContactMessage(req.params.id);
@@ -462,12 +524,9 @@ app.delete('/api/contact/:id', requireAuth, async (req, res) => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SPECIFIC PORTFOLIO SECTION ENDPOINTS (CRUD)
+   PORTFOLIO SECTION ENDPOINTS (CRUD)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/**
- * GET /api/projects or /api/works
- */
 app.get(['/api/projects', '/api/works'], async (req, res) => {
   try {
     const master = await getMasterData();
@@ -486,9 +545,6 @@ app.get(['/api/projects', '/api/works'], async (req, res) => {
   }
 });
 
-/**
- * POST /api/projects
- */
 app.post(['/api/projects', '/api/works'], requireAuth, async (req, res) => {
   try {
     const newWork = req.body;
@@ -509,9 +565,6 @@ app.post(['/api/projects', '/api/works'], requireAuth, async (req, res) => {
   }
 });
 
-/**
- * PUT /api/projects/:id
- */
 app.put(['/api/projects/:id', '/api/works/:id'], requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -533,9 +586,6 @@ app.put(['/api/projects/:id', '/api/works/:id'], requireAuth, async (req, res) =
   }
 });
 
-/**
- * DELETE /api/projects/:id
- */
 app.delete(['/api/projects/:id', '/api/works/:id'], requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -550,9 +600,6 @@ app.delete(['/api/projects/:id', '/api/works/:id'], requireAuth, async (req, res
   }
 });
 
-/**
- * GET /api/profile
- */
 app.get('/api/profile', async (req, res) => {
   try {
     const master = await getMasterData();
@@ -569,9 +616,6 @@ app.get('/api/profile', async (req, res) => {
   }
 });
 
-/**
- * PUT /api/profile
- */
 app.put('/api/profile', requireAuth, async (req, res) => {
   try {
     const master = await getMasterData();
@@ -586,9 +630,6 @@ app.put('/api/profile', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * GET /api/services
- */
 app.get('/api/services', async (req, res) => {
   try {
     const master = await getMasterData();
@@ -598,9 +639,6 @@ app.get('/api/services', async (req, res) => {
   }
 });
 
-/**
- * GET /api/skills
- */
 app.get('/api/skills', async (req, res) => {
   try {
     const master = await getMasterData();
@@ -610,9 +648,6 @@ app.get('/api/skills', async (req, res) => {
   }
 });
 
-/**
- * GET /api/social-links
- */
 app.get('/api/social-links', async (req, res) => {
   try {
     const master = await getMasterData();

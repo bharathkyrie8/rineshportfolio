@@ -17,9 +17,6 @@
   "author": "Rinesh Kumar",
   "license": "ISC",
   "dependencies": {
-    "@supabase/server": "^1.4.1",
-    "@supabase/ssr": "^0.12.4",
-    "@supabase/supabase-js": "^2.112.3",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

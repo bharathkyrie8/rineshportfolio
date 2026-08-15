@@ -46,7 +46,7 @@ server.listen(TEST_PORT, async () => {
     const projJson = await projRes.json();
     console.log('✅ /api/projects:', projJson.success, 'Projects count:', projJson.data?.length);
 
-    console.log('\n🎉 ALL SUPABASE DATABASE SERVER & API TESTS PASSED SUCCESSFULLY!');
+    console.log('\n🎉 ALL PORTFOLIO SERVER & API TESTS PASSED SUCCESSFULLY!');
   } catch (err) {
     console.error('❌ Test failed:', err);
   } finally {
