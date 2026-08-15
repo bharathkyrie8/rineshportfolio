@@ -398,7 +398,7 @@ function getDefaultData() {
       stats: { clientSatisfaction: 98, projectsCompleted: 150, globalClients: 96 },
       centerTagline: 'Sound engineering, design and music scoring made better.',
       ctaLabel: 'view projects',
-      ctaLink: 'works.html'
+      ctaLink: 'works.html#works'
     },
     about: {
       name: 'Rinesh Kumar',

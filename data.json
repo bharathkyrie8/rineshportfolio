@@ -24,7 +24,7 @@
     },
     "centerTagline": "Sound engineering, design and music scoring made better.",
     "ctaLabel": "view projects",
-    "ctaLink": "works.html"
+    "ctaLink": "works.html#works"
   },
   "about": {
     "name": "Rinesh Kumar",
@@ -173,7 +173,7 @@
     "adminPasscode": "rinesh"
   },
   "meta": {
-    "lastUpdated": "2026-08-15T07:12:47.552Z",
+    "lastUpdated": "2026-08-15T07:34:52.835Z",
     "version": "1.2.0"
   }
 }

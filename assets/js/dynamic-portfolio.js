@@ -228,8 +228,10 @@
       });
     }
     if (hero.ctaLink) {
+      const isWorksPage = window.location.pathname.includes('works.html') || window.location.pathname.endsWith('/works');
+      const linkTarget = (isWorksPage && hero.ctaLink.includes('#works')) ? '#works' : hero.ctaLink;
       document.querySelectorAll('.banner-three-button a').forEach(el => {
-        el.setAttribute('href', hero.ctaLink);
+        el.setAttribute('href', linkTarget);
       });
     }
 
