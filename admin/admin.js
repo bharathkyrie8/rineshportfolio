@@ -368,23 +368,27 @@ async function loadData() {
 
   hasLoadedData = true;
 
-  // 4. Restore any unsynced offline changes from browser localStorage
-  const offlinePending = localStorage.getItem('rk_offline_pending');
-  if (offlinePending) {
-    try {
-      const parsed = JSON.parse(offlinePending);
-      if (parsed && typeof parsed === 'object') {
-        const fallbackWorks = (portfolioData.works && portfolioData.works.length > 0)
-          ? portfolioData.works
-          : getDefaultData().works;
+  // 4. Only restore unsynced changes if server load failed; otherwise clear stale offline cache
+  if (!loadedSuccessfully) {
+    const offlinePending = localStorage.getItem('rk_offline_pending');
+    if (offlinePending) {
+      try {
+        const parsed = JSON.parse(offlinePending);
+        if (parsed && typeof parsed === 'object') {
+          const fallbackWorks = (portfolioData.works && portfolioData.works.length > 0)
+            ? portfolioData.works
+            : getDefaultData().works;
 
-        portfolioData = Object.assign({}, portfolioData, parsed);
+          portfolioData = Object.assign({}, portfolioData, parsed);
 
-        if (!portfolioData.works || portfolioData.works.length === 0) {
-          portfolioData.works = fallbackWorks;
+          if (!portfolioData.works || portfolioData.works.length === 0) {
+            portfolioData.works = fallbackWorks;
+          }
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
+  } else {
+    localStorage.removeItem('rk_offline_pending');
   }
 
   // Ensure works list always has the 10 works if empty
@@ -601,6 +605,7 @@ async function saveAllData(e, clickedBtn) {
 
   // 3. Update UI Feedback Toast & Badges
   if (serverSaveSuccess) {
+    localStorage.removeItem('rk_offline_pending');
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
       saveBadge.textContent = 'saved (server)';

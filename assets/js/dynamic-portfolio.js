@@ -123,6 +123,7 @@
           if (result.success && result.data) {
             applyAllData(result.data);
             loadedFromApi = true;
+            try { localStorage.removeItem('rk_offline_pending'); } catch (_) {}
             break;
           }
         }
