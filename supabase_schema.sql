@@ -83,7 +83,7 @@ VALUES (
       "title": "sound engineer",
       "subtitle": "Hello! I''m Rinesh Kumar, a professional sound engineer & music composer.",
       "description": "Sound engineering, design and music scoring made better.",
-      "videoPath": "assets/Showreel V3.mov",
+      "videoPath": "https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing",
       "avatarUrl": "assets/images/thumbs/about-three-img.png",
       "stats": {
         "clientSatisfaction": 98,

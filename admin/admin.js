@@ -474,7 +474,7 @@ function getDefaultData() {
       title: 'sound engineer',
       subtitle: "Hello! I'm Rinesh Kumar,\na professional sound engineer & music composer.",
       description: 'Sound engineering, design and music scoring made better.',
-      videoPath: 'assets/Showreel V3.mov',
+      videoPath: 'https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing',
       skills: ['Mixing & Mastering', 'Sound Design & Foley', 'Music Composing', 'Background Scoring', 'Audio Post-Production'],
       stats: { clientSatisfaction: 98, projectsCompleted: 150, globalClients: 96 },
       centerTagline: 'Sound engineering, design and music scoring made better.',
@@ -777,8 +777,8 @@ function bindAllForms() {
   setVal('hero-title', d.hero?.title);
   setVal('hero-subtitle', d.hero?.subtitle);
   setVal('hero-description', d.hero?.description);
-  setVal('hero-video-path', d.hero?.videoPath || 'assets/Showreel_V3.mp4');
-  updateHeroVideoPreview(d.hero?.videoPath || 'assets/Showreel_V3.mp4');
+  setVal('hero-video-path', d.hero?.videoPath || 'https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing');
+  updateHeroVideoPreview(d.hero?.videoPath || 'https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing');
   setVal('hero-tagline', d.hero?.centerTagline);
   setVal('hero-cta-label', d.hero?.ctaLabel);
   setVal('hero-cta-link', d.hero?.ctaLink);
@@ -1171,7 +1171,6 @@ function readFileAsDataUrl(file) {
    UNIVERSAL DRAG AND DROP SETUP
 ───────────────────────────────────── */
 function setupDragAndDropZones() {
-  bindDropZone('heroVideoDropZone', 'heroVideoFileInput', 'hero-video-path');
   bindDropZone('aboutImgDropZone', 'aboutImgFileInput', 'about-profile-image');
   bindDropZone('cvDropZone', 'cvFileInput', 'cv-filepath');
 }
@@ -1350,7 +1349,25 @@ function updateHeroVideoPreview(url) {
 
   const clean = resolveVideoUrlAdmin(url.trim());
 
-  // 1. YouTube
+  // 1. Google Drive Video Link Parser (e.g. https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing)
+  if (/drive\.google\.com/i.test(clean)) {
+    const match = clean.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/i);
+    const id = match ? match[1] : '';
+    const embedUrl = id ? `https://drive.google.com/file/d/${id}/preview` : clean;
+    inner.innerHTML = `<iframe src="${embedUrl}" title="Google Drive Video Player" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:100%;border:none;border-radius:12px;display:block;"></iframe>`;
+    return;
+  }
+
+  // 2. Kapwing Video Link Parser (e.g. https://www.kapwing.com/w/UzUvelKcen or /e/UzUvelKcen)
+  if (/kapwing\.com/i.test(clean)) {
+    const match = clean.match(/kapwing\.com\/(?:w|e|videos)\/([a-zA-Z0-9_-]+)/i);
+    const id = match ? match[1] : '';
+    const embedUrl = id ? `https://www.kapwing.com/e/${id}` : clean;
+    inner.innerHTML = `<iframe src="${embedUrl}" title="Kapwing Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%;height:100%;border:none;border-radius:12px;display:block;"></iframe>`;
+    return;
+  }
+
+  // 2. YouTube
   if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(clean)) {
     const match = clean.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
     if (match && match[2].length === 11) {
@@ -1360,7 +1377,7 @@ function updateHeroVideoPreview(url) {
     }
   }
 
-  // 2. Vimeo
+  // 3. Vimeo
   if (/^(https?:\/\/)?(www\.)?vimeo\.com\//i.test(clean)) {
     const match = clean.match(/vimeo\.com\/(\d+)/);
     if (match && match[1]) {

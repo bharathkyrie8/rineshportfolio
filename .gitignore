@@ -31,4 +31,5 @@ __pycache__/
 assets/*.mov
 assets/*.mp4
 assets/Showreel*
+*.zip
 

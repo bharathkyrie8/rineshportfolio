@@ -59,6 +59,53 @@
       } catch (_) {}
     }
     return directSupabase;
+  function renderHeroVideoHTML(url) {
+    if (!url || !url.trim()) return '';
+    const clean = url.trim();
+
+    // 1. Google Drive video link parser (e.g. https://drive.google.com/file/d/1DrSEZ0NhLijo8nKydmF4wHoQM620O6tT/view?usp=sharing)
+    if (/drive\.google\.com/i.test(clean)) {
+      const match = clean.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/i);
+      const id = match ? match[1] : '';
+      const embedUrl = id ? `https://drive.google.com/file/d/${id}/preview` : clean;
+      return `<iframe class="intro-video" src="${embedUrl}" title="Google Drive Video Player" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:100%;border:none;border-radius:16px;display:block;"></iframe>`;
+    }
+
+    // 2. Kapwing video link parser (e.g. https://www.kapwing.com/w/UzUvelKcen or /e/UzUvelKcen)
+    if (/kapwing\.com/i.test(clean)) {
+      const match = clean.match(/kapwing\.com\/(?:w|e|videos)\/([a-zA-Z0-9_-]+)/i);
+      const id = match ? match[1] : '';
+      const embedUrl = id ? `https://www.kapwing.com/e/${id}` : clean;
+      return `<iframe class="intro-video" src="${embedUrl}" title="Kapwing Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="width:100%;height:100%;border:none;border-radius:16px;display:block;"></iframe>`;
+    }
+
+    // 2. YouTube
+    if (/youtube\.com|youtu\.be/i.test(clean)) {
+      const match = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+      if (match && match[1]) {
+        const id = match[1];
+        return `<iframe class="intro-video" src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:none;border-radius:16px;display:block;"></iframe>`;
+      }
+    }
+
+    // 3. Vimeo
+    if (/vimeo\.com/i.test(clean)) {
+      const match = clean.match(/vimeo\.com\/(\d+)/i);
+      if (match && match[1]) {
+        const id = match[1];
+        return `<iframe class="intro-video" src="https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:none;border-radius:16px;display:block;"></iframe>`;
+      }
+    }
+
+    // 4. HTML5 Video / MP4 / MOV
+    const isMov = clean.toLowerCase().endsWith('.mov');
+    const mimeType = isMov ? 'video/quicktime' : 'video/mp4';
+
+    return `<video class="intro-video" controls loop playsinline preload="metadata" width="100%" height="100%" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">` +
+      `<source src="${escapeHtml(clean)}" type="${mimeType}">` +
+      `<source src="${escapeHtml(clean)}" type="video/mp4">` +
+      `Your browser does not support HTML5 video.` +
+      `</video>`;
   }
 
   async function loadPortfolioData() {
@@ -193,12 +240,11 @@
 
     // Hero Video Player source
     if (hero.videoPath) {
-      const videoEl = document.querySelector('.intro-video');
-      if (videoEl) {
-        const sourceEl = videoEl.querySelector('source');
-        if (sourceEl && sourceEl.getAttribute('src') !== hero.videoPath) {
-          sourceEl.setAttribute('src', hero.videoPath);
-          videoEl.load();
+      const wrapperEl = document.querySelector('.intro-video-wrapper');
+      if (wrapperEl) {
+        if (wrapperEl.getAttribute('data-video-src') !== hero.videoPath) {
+          wrapperEl.setAttribute('data-video-src', hero.videoPath);
+          wrapperEl.innerHTML = renderHeroVideoHTML(hero.videoPath);
         }
       }
     }

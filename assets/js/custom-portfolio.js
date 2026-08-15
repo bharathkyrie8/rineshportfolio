@@ -206,7 +206,7 @@ $(document).ready(function() {
     return mins + ':' + (secs < 10 ? '0' : '') + secs;
   }
 
-  if (introVideo) {
+  if (introVideo && introVideo.tagName === 'VIDEO') {
     introVideo.muted = false;
     introVideo.volume = 1.0;
 
