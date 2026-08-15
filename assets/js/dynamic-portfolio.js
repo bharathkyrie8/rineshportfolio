@@ -30,18 +30,11 @@
       } catch (_) {}
     }
 
-    // 2. Listen for localStorage changes
+    // 2. Listen for localStorage trigger (admin saved) → reload fresh from server
     window.addEventListener('storage', function (e) {
-      if (e.key === 'rk_portfolio_sync_trigger' || e.key === 'rk_offline_pending') {
-        const cached = localStorage.getItem('rk_offline_pending');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            applyAllData(parsed);
-          } catch (_) {}
-        } else {
-          loadPortfolioData();
-        }
+      if (e.key === 'rk_portfolio_sync_trigger') {
+        // Admin panel saved — reload fresh data from server
+        loadPortfolioData();
       }
     });
   }
