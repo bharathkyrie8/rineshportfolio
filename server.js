@@ -50,16 +50,16 @@ app.use(cors({
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
-// Serve static assets & website files
-app.use(express.static(__dirname));
-app.use('/assets/uploads', express.static(UPLOADS_DIR));
-
-// Explicit HTML page routes (works for clean URLs & direct navigation)
+// Explicit HTML page routes — MUST come before express.static to prevent /works/ folder redirect
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/works', (req, res) => res.sendFile(path.join(__dirname, 'works.html')));
 app.get('/works.html', (req, res) => res.sendFile(path.join(__dirname, 'works.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
 app.get('/admin/', (req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
+
+// Serve static assets & website files
+app.use(express.static(__dirname, { redirect: false }));
+app.use('/assets/uploads', express.static(UPLOADS_DIR));
 
 // JWT Authentication Middleware for Protected Routes
 function requireAuth(req, res, next) {
