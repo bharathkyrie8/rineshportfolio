@@ -1971,8 +1971,16 @@ async function saveCustomApi() {
     showToast(`🟢 Successfully connected to: ${val}`, 'success');
     closeConnModal();
     loadData();
+  } else if (/netlify\.app|github\.io|vercel\.app/i.test(val) || getDirectSupabase()) {
+    localStorage.removeItem('rk_custom_api');
+    cachedApiBase = 'SUPABASE_CLOUD';
+    sessionStorage.setItem('rk_active_api', 'SUPABASE_CLOUD');
+    updateServerStatus(true, 'Supabase Cloud');
+    showToast('⚡ Static Host Detected! Connected Admin Panel directly to Supabase Cloud Database.', 'success');
+    closeConnModal();
+    loadData();
   } else {
-    showToast(`⚠️ Could not reach ${val}. Ensure the server is running and CORS is enabled.`, 'error');
+    showToast(`⚠️ Could not reach ${val}. If using a local backend, ensure your server is running.`, 'error');
   }
 }
 
