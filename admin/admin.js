@@ -640,102 +640,67 @@ async function saveAllData(e, clickedBtn) {
 
   let serverSaveSuccess = false;
 
+  // 2. Try POSTing to backend server API (/api/save)
   try {
     const apiBase = await getApiBase();
+    const targetUrl = (apiBase && apiBase !== 'SUPABASE_CLOUD') ? `${apiBase}/api/save` : '/api/save';
 
-    if (apiBase === 'SUPABASE_CLOUD') {
-      const sb = getDirectSupabase();
-      if (sb) {
-        const { error } = await sb
-          .from('portfolio_data')
-          .upsert({
-            id: 'master',
-            content: portfolioData,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-        if (!error) {
-          serverSaveSuccess = true;
-          showToast('⚡ Saved directly to Supabase Cloud Database! Live portfolio updated globally.', 'success');
-          const saveBadge = document.getElementById('api-save-badge');
-          if (saveBadge) {
-            saveBadge.textContent = 'saved (supabase cloud)';
-            saveBadge.className = 'api-badge ok';
-          }
-          updateDashboardCards();
-          updateServerStatus(true, 'Supabase Cloud');
-        }
-      }
-    } else {
-      const headers = { 'Content-Type': 'application/json' };
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-      const res = await fetch(`${apiBase}/api/save`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(portfolioData)
-      });
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(portfolioData)
+    });
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status === 'success' || json.status === 'partial' || json.success) {
-          serverSaveSuccess = true;
-          const msg = (json.result && json.result.supabaseSaved) 
-            ? '✅ Saved to Supabase Cloud Database! Portfolio updated globally.'
-            : '✅ Saved to Server! Portfolio & Admin updated.';
-          showToast(msg, 'success');
-          const saveBadge = document.getElementById('api-save-badge');
-          if (saveBadge) {
-            saveBadge.textContent = (json.result && json.result.supabaseSaved) ? 'saved (supabase)' : 'saved (server)';
-            saveBadge.className = 'api-badge ok';
-          }
-          updateDashboardCards();
-          updateServerStatus(true, apiBase);
-        }
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'success' || json.status === 'partial' || json.success) {
+        serverSaveSuccess = true;
       }
     }
   } catch (err) {
-    console.error('❌ Server save error:', err);
+    console.warn('⚠️ Server save notice:', err.message);
   }
 
-  // Backup fallback: if Express save failed, try Direct Supabase Cloud Save!
-  if (!serverSaveSuccess) {
-    const sb = getDirectSupabase();
-    if (sb) {
-      try {
-        const { error } = await sb
-          .from('portfolio_data')
-          .upsert({
-            id: 'master',
-            content: portfolioData,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+  // 3. Try Direct Supabase Cloud Save if client is configured
+  let supabaseSaveSuccess = false;
+  const sb = getDirectSupabase();
+  if (sb) {
+    try {
+      const { error } = await sb
+        .from('portfolio_data')
+        .upsert({
+          id: 'master',
+          content: portfolioData,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
 
-        if (!error) {
-          serverSaveSuccess = true;
-          showToast('⚡ Saved directly to Supabase Cloud Database! Live portfolio updated globally.', 'success');
-          const saveBadge = document.getElementById('api-save-badge');
-          if (saveBadge) {
-            saveBadge.textContent = 'saved (supabase cloud)';
-            saveBadge.className = 'api-badge ok';
-          }
-          updateDashboardCards();
-          updateServerStatus(true, 'Supabase Cloud');
-        }
-      } catch (_) {}
+      if (!error) {
+        supabaseSaveSuccess = true;
+      }
+    } catch (_) {}
+  }
+
+  // 4. Update UI Feedback Toast & Badges
+  if (serverSaveSuccess || supabaseSaveSuccess) {
+    const saveBadge = document.getElementById('api-save-badge');
+    if (saveBadge) {
+      saveBadge.textContent = supabaseSaveSuccess ? 'saved (supabase cloud)' : 'saved (server)';
+      saveBadge.className = 'api-badge ok';
     }
-  }
-
-  if (!serverSaveSuccess) {
+    updateDashboardCards();
+    updateServerStatus(true, supabaseSaveSuccess ? 'Supabase Cloud' : 'Express Server');
+    showToast('⚡ Live portfolio updated globally & saved to database!', 'success');
+  } else {
     updateServerStatus(false);
-    showToast('💾 Saved in browser storage! (Static / Offline Mode). Click "Export data.json" to download your file.', 'info');
+    showToast('💾 Saved in browser storage! (Offline Mode).', 'info');
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
       saveBadge.textContent = 'cached (local)';
-      saveBadge.className = 'api-badge info';
+      saveBadge.className = 'api-badge warn';
     }
-    updateDashboardCards();
   }
 
   if (topBtn) {
