@@ -1958,18 +1958,67 @@ function importDataJson(file) {
   reader.readAsText(file);
 }
 
-function markUnsavedChanges() {
+let autoSaveDebounceTimer = null;
+
+function broadcastRealtimeUpdate() {
+  try {
+    localStorage.setItem('rk_offline_pending', JSON.stringify(portfolioData));
+    localStorage.setItem('rk_portfolio_sync_trigger', Date.now().toString());
+  } catch (_) {}
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      const syncChannel = new BroadcastChannel('rinesh_portfolio_sync');
+      syncChannel.postMessage({ type: 'PORTFOLIO_UPDATE', data: portfolioData });
+    } catch (_) {}
+  }
+}
+
+function triggerRealtimeAutoSave() {
+  collectFormData();
+  broadcastRealtimeUpdate();
+
   const badge = document.getElementById('saveStateBadge');
   if (badge) {
-    badge.innerHTML = '<i class="ph ph-warning"></i> Unsaved Changes';
+    badge.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;border-color:rgba(255,255,255,0.4);border-top-color:#fff;display:inline-block;border-radius:50%;animation:spin 0.8s linear infinite"></span> Auto-Saving...';
     badge.className = 'api-badge warn';
   }
+
+  if (autoSaveDebounceTimer) clearTimeout(autoSaveDebounceTimer);
+  autoSaveDebounceTimer = setTimeout(async () => {
+    try {
+      const apiBase = await getApiBase();
+      const targetUrl = apiBase ? `${apiBase}/api/save` : '/api/save';
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(portfolioData)
+      });
+
+      if (res.ok) {
+        if (badge) {
+          badge.innerHTML = '<i class="ph ph-check-circle"></i> Real-Time Saved';
+          badge.className = 'api-badge ok';
+        }
+        updateDashboardCards();
+        refreshLivePreview();
+      }
+    } catch (_) {
+      if (badge) {
+        badge.innerHTML = '<i class="ph ph-check-circle"></i> Saved (Local)';
+        badge.className = 'api-badge ok';
+      }
+    }
+  }, 500);
 }
 
 document.addEventListener('input', (e) => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
     if (!e.target.closest('.auth-overlay') && !e.target.closest('.conn-modal-card')) {
-      markUnsavedChanges();
+      triggerRealtimeAutoSave();
     }
   }
 });
