@@ -107,18 +107,27 @@
       }
     } catch (_) {}
 
-    // 2. Fetch live data from backend server API
+    // 2. Fetch live data from backend server API (tries relative and local server ports)
+    const candidates = [
+      '/api/data?_t=' + Date.now(),
+      'http://localhost:5000/api/data?_t=' + Date.now(),
+      'http://127.0.0.1:5000/api/data?_t=' + Date.now()
+    ];
+
     let loadedFromApi = false;
-    try {
-      const res = await fetch('/api/data?_t=' + Date.now());
-      if (res.ok) {
-        const result = await res.json();
-        if (result.success && result.data) {
-          applyAllData(result.data);
-          loadedFromApi = true;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && result.data) {
+            applyAllData(result.data);
+            loadedFromApi = true;
+            break;
+          }
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     // 3. Fallback: Fetch static data.json file if API server is offline
     if (!loadedFromApi) {
