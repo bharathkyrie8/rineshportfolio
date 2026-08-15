@@ -15,7 +15,7 @@ let heartbeatInterval = null;
 
 let latestServerInfo = null;
 
-async function pingCandidate(url, timeoutMs = 1200) {
+async function pingCandidate(url, timeoutMs = 600) {
   if (url === null || url === undefined) return { ok: false };
   const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
 
@@ -27,31 +27,15 @@ async function pingCandidate(url, timeoutMs = 1200) {
     clearTimeout(timer);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.status === 'ok') {
+      if (data && (data.status === 'ok' || data.success)) {
         latestServerInfo = data;
         updateDeviceHub(data, cleanUrl);
+        return { ok: true, data, endpoint: cleanUrl };
       }
-      return { ok: true, data, endpoint: cleanUrl };
     }
   } catch (_) {}
 
-  // 2. Test /health (direct root mount)
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    const res = await fetch(`${cleanUrl}/health`, { method: 'GET', signal: ctrl.signal });
-    clearTimeout(timer);
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.status === 'ok') {
-        latestServerInfo = data;
-        updateDeviceHub(data, cleanUrl);
-      }
-      return { ok: true, data, endpoint: cleanUrl };
-    }
-  } catch (_) {}
-
-  // 3. Test /api/data
+  // 2. Test /api/data
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -70,7 +54,7 @@ async function getApiBase(forceProbe = false) {
   // 1. Check custom user-configured API URL from localStorage
   const customApi = localStorage.getItem('rk_custom_api');
   if (customApi) {
-    const check = await pingCandidate(customApi, 1200);
+    const check = await pingCandidate(customApi, 800);
     if (check.ok) {
       cachedApiBase = customApi;
       sessionStorage.setItem('rk_active_api', customApi);
@@ -80,42 +64,39 @@ async function getApiBase(forceProbe = false) {
   }
 
   // 2. Check cached API base if valid
-  if (!forceProbe && cachedApiBase) {
-    const check = await pingCandidate(cachedApiBase, 800);
+  const activeSessionApi = sessionStorage.getItem('rk_active_api');
+  const checkTarget = (!forceProbe && (cachedApiBase || activeSessionApi)) || null;
+  if (checkTarget) {
+    const check = await pingCandidate(checkTarget, 500);
     if (check.ok) {
-      updateServerStatus(true, cachedApiBase);
-      return cachedApiBase;
+      cachedApiBase = checkTarget;
+      updateServerStatus(true, checkTarget);
+      return checkTarget;
     }
   }
 
   const isHttps = window.location.protocol === 'https:';
-  const isHttp = window.location.protocol === 'http:';
   const candidates = [];
 
-  // 3. Current origin (deployed host or local dev)
-  if (isHttps || isHttp) {
-    if (window.location.origin && window.location.origin !== 'null') {
-      candidates.push(window.location.origin);
-      candidates.push(''); // Relative origin fallback
-    }
-  }
-
-  // 4. Local dev server ports — ONLY probe on HTTP or file: (NEVER on HTTPS to avoid mixed-content blocking)
+  // Local dev server ports — ALWAYS prioritize port 5000 first on HTTP / local file
   if (!isHttps) {
     candidates.push('http://localhost:5000');
     candidates.push('http://127.0.0.1:5000');
-    candidates.push('http://localhost:5500');
-    candidates.push('http://127.0.0.1:5500');
-    candidates.push('http://localhost:5501');
-    candidates.push('http://127.0.0.1:5501');
-    candidates.push('http://localhost:5502');
-    candidates.push('http://localhost:3000');
+    if (window.location.origin && window.location.origin !== 'null') {
+      candidates.push(window.location.origin);
+    }
+    candidates.push('');
+  } else {
+    if (window.location.origin && window.location.origin !== 'null') {
+      candidates.push(window.location.origin);
+    }
+    candidates.push('');
   }
 
   const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
 
   for (const origin of uniqueCandidates) {
-    const check = await pingCandidate(origin, 1000);
+    const check = await pingCandidate(origin, 600);
     if (check.ok) {
       cachedApiBase = origin;
       sessionStorage.setItem('rk_active_api', origin);
@@ -126,8 +107,7 @@ async function getApiBase(forceProbe = false) {
 
   // Default fallback if server is offline (Static / GitHub Pages mode)
   updateServerStatus(false);
-  const fallback = (isHttps || isHttp) ? window.location.origin : 'http://localhost:5000';
-  return fallback;
+  return (isHttps) ? window.location.origin : 'http://localhost:5000';
 }
 
 let hasLoadedData = false;
@@ -574,28 +554,38 @@ async function saveAllData(e, clickedBtn) {
 
   let serverSaveSuccess = false;
 
-  // 2. Try POSTing to backend server API (/api/save)
+  // 2. Try POSTing to backend server API (/api/save) with fallback candidates
+  const saveTargets = [];
   try {
     const apiBase = await getApiBase();
-    const targetUrl = apiBase ? `${apiBase}/api/save` : '/api/save';
+    if (apiBase) saveTargets.push(`${apiBase}/api/save`);
+  } catch (_) {}
 
-    const headers = { 'Content-Type': 'application/json' };
-    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  if (!saveTargets.includes('/api/save')) saveTargets.push('/api/save');
+  if (!saveTargets.includes('http://localhost:5000/api/save')) saveTargets.push('http://localhost:5000/api/save');
+  if (!saveTargets.includes('http://127.0.0.1:5000/api/save')) saveTargets.push('http://127.0.0.1:5000/api/save');
 
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(portfolioData)
-    });
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status === 'success' || json.status === 'partial' || json.success) {
-        serverSaveSuccess = true;
+  for (const targetUrl of saveTargets) {
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(portfolioData)
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status === 'success' || json.status === 'partial' || json.success) {
+          serverSaveSuccess = true;
+          break;
+        }
       }
+    } catch (err) {
+      console.warn(`⚠️ Save attempt failed for ${targetUrl}:`, err.message);
     }
-  } catch (err) {
-    console.warn('⚠️ Server save notice:', err.message);
   }
 
   // 3. Update UI Feedback Toast & Badges
