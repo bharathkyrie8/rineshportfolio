@@ -96,18 +96,7 @@
   }
 
   async function loadPortfolioData() {
-    // 1. Check cached offline data first for instant render
-    try {
-      const cached = localStorage.getItem('rk_offline_pending');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === 'object') {
-          applyAllData(parsed);
-        }
-      }
-    } catch (_) {}
-
-    // 2. Fetch live data from backend server API (tries relative and local server ports)
+    // 1. Fetch LIVE data from backend server API first (always prefer server over cache)
     const candidates = [
       '/api/data?_t=' + Date.now(),
       'http://localhost:5000/api/data?_t=' + Date.now(),
@@ -130,7 +119,7 @@
       } catch (_) {}
     }
 
-    // 3. Fallback: Fetch static data.json file if API server is offline
+    // 2. Fallback: try static data.json if API server is offline
     if (!loadedFromApi) {
       const paths = ['data.json', '../data.json', './data.json', '/data.json'];
       for (const p of paths) {
@@ -140,12 +129,25 @@
             const staticData = await staticRes.json();
             if (staticData && typeof staticData === 'object') {
               applyAllData(staticData);
-              console.log('✅ [PORTFOLIO] Successfully loaded portfolio from static data.json');
+              loadedFromApi = true;
               break;
             }
           }
         } catch (_) {}
       }
+    }
+
+    // 3. Last resort: use stale localStorage cache only if server AND static file are both unreachable
+    if (!loadedFromApi) {
+      try {
+        const cached = localStorage.getItem('rk_offline_pending');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === 'object') {
+            applyAllData(parsed);
+          }
+        }
+      } catch (_) {}
     }
   }
 

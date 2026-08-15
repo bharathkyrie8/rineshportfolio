@@ -553,14 +553,9 @@ async function saveAllData(e, clickedBtn) {
 
   collectFormData();
 
-  // Always save to browser localStorage immediately so work is never lost!
+  // Keep a temporary copy in case server save fails
   try {
-    localStorage.setItem('rk_offline_pending', JSON.stringify(portfolioData));
     localStorage.setItem('rk_portfolio_sync_trigger', String(Date.now()));
-    if (typeof BroadcastChannel !== 'undefined') {
-      const bc = new BroadcastChannel('rinesh_portfolio_sync');
-      bc.postMessage({ type: 'SYNC_DATA', data: portfolioData });
-    }
   } catch (_) {}
 
   const topBtn = document.getElementById('topbarSaveBtn');
@@ -605,7 +600,16 @@ async function saveAllData(e, clickedBtn) {
 
   // 3. Update UI Feedback Toast & Badges
   if (serverSaveSuccess) {
+    // Server saved OK — clear all stale caches and broadcast live update
     localStorage.removeItem('rk_offline_pending');
+    // Now broadcast to portfolio website tabs after confirmed server save
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('rinesh_portfolio_sync');
+        bc.postMessage({ type: 'SYNC_DATA', data: portfolioData });
+        setTimeout(() => bc.close(), 500);
+      }
+    } catch (_) {}
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
       saveBadge.textContent = 'saved (server)';
@@ -613,13 +617,17 @@ async function saveAllData(e, clickedBtn) {
     }
     updateDashboardCards();
     updateServerStatus(true, 'Express Server');
-    showToast('⚡ Live portfolio updated & saved to server!', 'success');
+    showToast('⚡ Saved! Portfolio website updated instantly!', 'success');
   } else {
+    // Server offline — save to localStorage as backup only
+    try {
+      localStorage.setItem('rk_offline_pending', JSON.stringify(portfolioData));
+    } catch (_) {}
     updateServerStatus(false);
-    showToast('💾 Saved in browser storage! (Offline Mode).', 'info');
+    showToast('⚠️ Server offline. Data saved locally — start the server and save again!', 'error');
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
-      saveBadge.textContent = 'cached (local)';
+      saveBadge.textContent = 'offline — save failed';
       saveBadge.className = 'api-badge warn';
     }
   }
