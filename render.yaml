@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: rinesh-portfolio-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        value: rinesh_portfolio_jwt_secret_key_2026
