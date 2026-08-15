@@ -600,6 +600,16 @@ async function saveAllData(e, clickedBtn) {
   }
 
   // 3. Update UI Feedback Toast & Badges
+  const stateBadge = document.getElementById('saveStateBadge');
+  if (stateBadge) {
+    stateBadge.innerHTML = '<i class="ph ph-check-circle"></i> Saved & Synchronized';
+    stateBadge.className = 'api-badge ok';
+  }
+
+  // Re-bind forms with clean saved data & refresh preview iframe
+  bindAllForms();
+  refreshLivePreview();
+
   if (serverSaveSuccess) {
     const saveBadge = document.getElementById('api-save-badge');
     if (saveBadge) {
@@ -1442,6 +1452,7 @@ function switchSection(name) {
 
   const labels = {
     dashboard: 'Dashboard',
+    preview: 'Live Site Preview',
     branding: 'Branding & Titles',
     works: 'Works & Projects',
     hero: 'Hero & Video',
@@ -1452,6 +1463,17 @@ function switchSection(name) {
   };
   const bc = document.getElementById('breadcrumbSection');
   if (bc) bc.textContent = labels[name] || name;
+
+  if (name === 'preview') {
+    refreshLivePreview();
+  }
+}
+
+function refreshLivePreview() {
+  const iframe = document.getElementById('livePreviewIframe');
+  if (iframe) {
+    iframe.src = '../index.html?t=' + Date.now();
+  }
 }
 
 function restoreActiveSection() {
@@ -1935,3 +1957,19 @@ function importDataJson(file) {
   };
   reader.readAsText(file);
 }
+
+function markUnsavedChanges() {
+  const badge = document.getElementById('saveStateBadge');
+  if (badge) {
+    badge.innerHTML = '<i class="ph ph-warning"></i> Unsaved Changes';
+    badge.className = 'api-badge warn';
+  }
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+    if (!e.target.closest('.auth-overlay') && !e.target.closest('.conn-modal-card')) {
+      markUnsavedChanges();
+    }
+  }
+});
